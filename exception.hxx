@@ -25,6 +25,13 @@ namespace dstd
 		
 		virtual const char* what() const { return "dstd::out_of_range"; }
 	};
+	
+	class length_error : public exception
+	{
+		public:
+		
+		virtual const char* what() const { return "dstd::length_error"; }
+	};
 }
 
 #endif

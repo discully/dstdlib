@@ -16,7 +16,7 @@ namespace dstd
 			
 			/// Attempts to allocate a block of storage with a size large enough to contain n elements and returns a pointer to the first element.
 			/// Throws bad_alloc if it cannot allocate the total amount of storage requested.
-			T* allocate(unsigned int n, const T* hint = 0);
+			T* allocate(unsigned int n);//, const T* hint = 0);
 			
 			/// Releases a block of storage previously allocated with member allocate and not yet released
 			/// The elements in the array are not destroyed by a call to this member function.
