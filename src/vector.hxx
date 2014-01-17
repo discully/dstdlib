@@ -117,7 +117,7 @@ namespace dstd
 		iterator insert(iterator position, iterator first, iterator last);
 		iterator erase(iterator position);
 		iterator erase(iterator first, iterator last);
-		///void swap(vector& v);
+		void swap(vector& v);
 		void clear();
 		
 		
@@ -132,11 +132,12 @@ namespace dstd
 		T* p;
 		
 		///// Friends
-		///friend void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b);
+		template <class TT>
+		friend void dstd::swap(vector<TT>& a, vector<TT>& b);
 	};
 	
-	///template <class T>
-	///swap(dstd::vector<T>& a, dstd::vector<T>& b);
+	template <class T>
+	void swap(dstd::vector<T>& a, dstd::vector<T>& b);
 }
 	
 // Iterator operators

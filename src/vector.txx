@@ -52,7 +52,7 @@ template <class T>
 dstd::vector<T>::~vector()
 {
 	this->clear();
-	this->a.deallocate(this->p, this->n_memory);
+	if( this->p != 0 ) this->a.deallocate(this->p, this->n_memory);
 }
 
 
@@ -87,7 +87,7 @@ typename dstd::vector<T>::iterator dstd::vector<T>::begin()
 template <class T>
 typename dstd::vector<T>::iterator dstd::vector<T>::end()
 {
-	return dstd::vector<T>::iterator( &(this->p[ this->size() - 1]) );
+	return dstd::vector<T>::iterator( this->p + this->size() );
 }
 
 
@@ -273,14 +273,28 @@ const T& dstd::vector<T>::front() const
 template <class T>
 T& dstd::vector<T>::back()
 {
-	return this->p[ this->size() - 1 ];
+	if( this->size() > 0 )
+	{
+		return *(this->end() - 1);
+	}
+	else
+	{
+		return this->front();
+	}
 }
 
 
 template <class T>
 const T& dstd::vector<T>::back() const
 {
-	return this->p[ this->size() - 1 ];
+	if( this->size() > 0 )
+	{
+		return *(this->end() - 1);
+	}
+	else
+	{
+		return this->front();
+	}
 }
 
 
@@ -350,27 +364,31 @@ dstd::vector<T>::insert(typename dstd::vector<T>::iterator position, unsigned in
 		// If a reallocation occurs during reserve, position is invalidated
 		unsigned int i_position = static_cast<unsigned int>( position - this->begin() );
 		this->reserve( this->size() + n );
-		position = this->begin() + i_position; 
+		position = this->begin() + i_position;
 	}
 	
 	assert( this->capacity() >= (this->size() + n) );
 	
-	// Shuffle the last n elements n positions along
-	dstd::vector<T>::iterator it_from = dstd::vector<T>::iterator( &(this->back()) );
-	dstd::vector<T>::iterator it_to = it_from + n;
-	while( it_from > position )
+	if( position < this->end() )
 	{
-		this->a.construct( &(*it_to), *it_from );
-		this->a.destroy( &(*it_from) );
-		--it_from;
-		--it_to;
+		// Shuffle the last n elements n positions along
+		dstd::vector<T>::iterator it_from = dstd::vector<T>::iterator( &(this->back()) );
+		dstd::vector<T>::iterator it_to = it_from + n;
+		while( it_from > position )
+		{
+			this->a.construct( &(*it_to), *it_from );
+			this->a.destroy( &(*it_from) );
+			--it_from;
+			--it_to;
+		}
 	}
 	
-	// Insert the new elements into the gap behind
-	while( it_to > position )
+	// Insert the new elements into the gap
+	dstd::vector<T>::iterator it_to = position;
+	for(unsigned int i = 0; i != n; ++i)
 	{
 		this->a.construct( &(*it_to), value );
-		--it_to;
+		++it_to;
 	}
 	
 	// The vector is now longer
@@ -404,26 +422,28 @@ dstd::vector<T>::insert(iterator position, iterator first, iterator last)
 		position = this->begin() + i_position; 
 	}
 	
-	// Shuffle the last n elements n positions along
-	dstd::vector<T>::iterator it_from = dstd::vector<T>::iterator( &this->back() );
-	dstd::vector<T>::iterator it_to = it_from + n;
-	while( it_from > position )
+	if( position < this->end() )
 	{
-		this->a.construct( &(*it_to), *it_from );
-		this->a.destroy( &(*it_from) );
-		--it_from;
-		--it_to;
+		// Shuffle the last n elements n positions along
+		dstd::vector<T>::iterator it_from = dstd::vector<T>::iterator( &(this->back()) );
+		dstd::vector<T>::iterator it_to = it_from + n;
+		while( it_from > position )
+		{
+			this->a.construct( &(*it_to), *it_from );
+			this->a.destroy( &(*it_from) );
+			--it_from;
+			--it_to;
+		}
 	}
 	
-	it_from = last - 1;
-	
-	// Insert the new elements into the gap behind
-	while( it_to > position )
+	// Insert the new elements into the gap
+	dstd::vector<T>::iterator it_from = first;
+	dstd::vector<T>::iterator it_to = position;
+	while( it_from < last )
 	{
 		this->a.construct( &(*it_to), *it_from );
-		--it_from;
-		--it_to;
-		assert( it_from >= first );
+		++it_from;
+		++it_to;
 	}
 	
 	// The vector is now longer
@@ -466,7 +486,8 @@ typename dstd::vector<T>::iterator dstd::vector<T>::erase(iterator first, iterat
 		
 		if( it_shuffle < this->end() )
 		{
-			*it_erase = *it_shuffle;
+			this->a.construct( &(*it_erase), *it_shuffle);
+			this->a.destroy( &(*it_shuffle) );
 		}
 		
 		++it_erase;
@@ -480,11 +501,11 @@ typename dstd::vector<T>::iterator dstd::vector<T>::erase(iterator first, iterat
 }
 
 
-///template <class T>
-///void swap(dstd::vector<T>& v)
-///{
-///	dstd::swap(*this, v)
-///}
+template <class T>
+void dstd::vector<T>::swap(dstd::vector<T>& v)
+{
+	dstd::swap(*this, v);
+}
 
 
 template <class T>
@@ -499,21 +520,21 @@ void dstd::vector<T>::clear()
 // Vector Functions
 //
 
-///template <class T>
-///void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
-///{
-///	T* temp_p = a.p;
-///	unsigned int temp_n_data = a.size();
-///	unsigned int temp_n_memory = a.capacity();
-///	
-///	a.p = b.p;
-///	a.n_data = b.n_data;
-///	a.n_momory = b.n_memory;
-///	
-///	b.p = temp.p;
-///	b.n_data = temp.n_data;
-///	b.n_momory = temp.n_memory;
-///}
+template <class T>
+void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
+{
+	T* temp_p = a.p;
+	unsigned int temp_n_data = a.size();
+	unsigned int temp_n_memory = a.capacity();
+	
+	a.p = b.p;
+	a.n_data = b.n_data;
+	a.n_memory = b.n_memory;
+	
+	b.p = temp_p;
+	b.n_data = temp_n_data;
+	b.n_memory = temp_n_memory;
+}
 
 
 
