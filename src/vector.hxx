@@ -25,15 +25,25 @@ namespace dstd
 		{
 			public:
 			iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
-			T& operator* () { return *(this->p); }
-			const iterator& operator+= (const unsigned int& n) { this->p += (this->size * n); return (*this); }
-			const iterator& operator-= (const unsigned int& n) { this->p -= (this->size * n); return (*this); }
-			const iterator& operator+ (const unsigned int& n) { this->p += n; return this; }
-			const iterator& operator- (const unsigned int& n) { this->p -= n; return this; }
+			T& operator* () const { return *(this->p); }
+			iterator& operator=(const iterator& rhs) { this->p = &(*rhs); return *this; }
+			// Operators with int
+			iterator& operator+=(const int& n){ this->p += n; return (*this); }
+			iterator& operator-=(const int& n){ this->p -= n; return (*this); }
+			iterator operator+ (const int& n){ iterator it(*this); it += n; return it; }
+			iterator operator- (const int& n){ iterator it(*this); it -= n; return it; }
+			// Operators with iterators
+			int operator- (const iterator& rhs){ return ( this->p - &(*rhs) ); }
 			iterator& operator++() { (*this) += 1; return (*this); }
 			iterator& operator++(int) { iterator temp(*this); ++(*this); return temp; }
 			iterator& operator--() { (*this) -= 1; return (*this); }
 			iterator& operator--(int) { iterator temp(*this); --(*this); return temp; }
+			bool operator==(const iterator& rhs) const { return ( this->p == &(*rhs) ); }
+			bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
+			bool operator< (const iterator& rhs) const { return ( this->p < &(*rhs) ); }
+			bool operator> (const iterator& rhs) const { return ( this->p > &(*rhs) ); }
+			bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
+			bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
 			
 			private:
 			T* p;
@@ -103,8 +113,8 @@ namespace dstd
 		void push_back(const T& value);
 		void pop_back();
 		iterator insert(iterator position, const T& value);
-		void insert(iterator position, unsigned int n, const T& value);
-		void insert(iterator position, iterator first, iterator last);
+		iterator insert(iterator position, unsigned int n, const T& value);
+		iterator insert(iterator position, iterator first, iterator last);
 		iterator erase(iterator position);
 		iterator erase(iterator first, iterator last);
 		///void swap(vector& v);
@@ -131,24 +141,24 @@ namespace dstd
 	
 // Iterator operators
 
-template <class T>
-bool operator==(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+///template <class T>
+///bool operator==(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+///
+///template <class T>
+///bool operator<(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+///
+///template <class T>
+///bool operator!=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+///
+///template <class T>
+///bool operator>(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+///
+///template <class T>
+///bool operator>=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+///
+///template <class T>
+///bool operator<=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
 
-template <class T>
-bool operator<(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-
-template <class T>
-bool operator!=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-
-template <class T>
-bool operator>(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-
-template <class T>
-bool operator>=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-
-template <class T>
-bool operator<=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-
-#include "vector.cxx"
+#include "vector.txx"
 
 #endif
