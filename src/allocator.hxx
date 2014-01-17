@@ -30,4 +30,6 @@ namespace dstd
 	};
 }
 
+#include "allocator.cxx"
+
 #endif

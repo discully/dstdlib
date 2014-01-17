@@ -6,7 +6,7 @@
 
 
 template <class T>
-T* dstd::allocator::address(T& obj) const
+T* dstd::allocator<T>::address(T& obj) const
 {
 	// this breaks if T overloaded operator&
 	return &obj;
@@ -14,7 +14,7 @@ T* dstd::allocator::address(T& obj) const
 
 
 template <class T>
-const T* dstd::allocator::address(const T& obj) const
+const T* dstd::allocator<T>::address(const T& obj) const
 {
 	// this breaks if T overloaded operator&
 	return &obj;
@@ -22,7 +22,7 @@ const T* dstd::allocator::address(const T& obj) const
 
 
 template <class T>			
-T* dstd::allocator::allocate(unsigned int n)
+T* dstd::allocator<T>::allocate(unsigned int n)
 {
 	T* a = 0;
 	
@@ -45,21 +45,21 @@ T* dstd::allocator::allocate(unsigned int n)
 
 
 template <class T>
-void dstd::allocator::deallocate(T* p, unsigned int n)
+void dstd::allocator<T>::deallocate(T* p, unsigned int n)
 {
 	::operator delete(p, n*sizeof(T) );
 }
 
 
 template <class T>
-void dstd::allocator::construct(T* p, const T& value)
+void dstd::allocator<T>::construct(T* p, const T& value)
 {
 	new(p) T(value);
 }
 
 
 template <class T>
-void dstd::allocator::destroy(T* p)
+void dstd::allocator<T>::destroy(T* p)
 {
 	p->~T();
 }

@@ -1,15 +1,21 @@
 #ifndef DSTD_VECTOR_HXX
 #define DSTD_VECTOR_HXX
 
+#include "allocator.hxx"
+
+
+
+//// Forward-declaring
+//namespace dstd
+//{
+//	template <class T>
+//	class allocator<T>;
+//}
+
 
 
 namespace dstd
 {
-	// Forward-declaring
-	class allocator;
-	
-	
-	
 	template <class T>
 	class vector
 	{
@@ -19,17 +25,18 @@ namespace dstd
 		{
 			public:
 			iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
-			const iterator& operator+= (const unsigned int& n) { this->p += (this->size * n); return this; }
-			const iterator& operator-= (const unsigned int& n) { this->p -= (this->size * n); return this; }
+			T& operator* () { return *(this->p); }
+			const iterator& operator+= (const unsigned int& n) { this->p += (this->size * n); return (*this); }
+			const iterator& operator-= (const unsigned int& n) { this->p -= (this->size * n); return (*this); }
 			const iterator& operator+ (const unsigned int& n) { this->p += n; return this; }
-			const iterator& operator+ (const unsigned int& n) { this->p -= n; return this; }
-			iterator& operator++() { this->p += 1; return this; }
-			iterator& operator++(int) { iterator temp(this); ++(*this); return temp; }
-			iterator& operator--() { this->p -= 1; return this; }
+			const iterator& operator- (const unsigned int& n) { this->p -= n; return this; }
+			iterator& operator++() { (*this) += 1; return (*this); }
+			iterator& operator++(int) { iterator temp(*this); ++(*this); return temp; }
+			iterator& operator--() { (*this) -= 1; return (*this); }
 			iterator& operator--(int) { iterator temp(*this); --(*this); return temp; }
 			
 			private:
-			T* t;
+			T* p;
 			const unsigned int size;
 		};
 		class reverse_iterator
@@ -39,14 +46,14 @@ namespace dstd
 			const reverse_iterator& operator+= (const unsigned int& n) { this->p -= (this->size * n); return this; }
 			const reverse_iterator& operator-= (const unsigned int& n) { this->p += (this->size * n); return this; }
 			const reverse_iterator& operator+ (const unsigned int& n) { this->p += n; return this; }
-			const reverse_iterator& operator+ (const unsigned int& n) { this->p -= n; return this; }
+			const reverse_iterator& operator- (const unsigned int& n) { this->p -= n; return this; }
 			reverse_iterator& operator++() { this->p += 1; return this; }
 			reverse_iterator& operator++(int) { reverse_iterator temp(this); ++(*this); return temp; }
 			reverse_iterator& operator--() { this->p -= 1; return this; }
 			reverse_iterator& operator--(int) { reverse_iterator temp(*this); --(*this); return temp; }
 			
 			private:
-			T* t;
+			T* p;
 			const unsigned int size;
 		};
 		
@@ -60,7 +67,7 @@ namespace dstd
 		~vector();
 		
 		// Assignment
-		//operator= (const vector& v);
+		vector<T>& operator= (const vector<T>& v);
 		
 		// Iterators
 		iterator begin();
@@ -68,16 +75,17 @@ namespace dstd
 		iterator end();
 		///const_iterator end() const;
 		reverse_iterator rbegin();
-		const_reverse_iterator rbegin() const;
+		///const_reverse_iterator rbegin() const;
 		reverse_iterator rend();
-		const_reverse_iterator rend() const;
+		///const_reverse_iterator rend() const;
 		
 		// Capacity
 		unsigned int size() const;
-		void resize();
+		unsigned int max_size() const;
+		void resize(unsigned int n, const T& value = T());
 		unsigned int capacity() const;
 		bool empty() const;
-		void reserve();
+		void reserve(unsigned int n);
 		
 		// Element access
 		T& operator[](unsigned int i);
@@ -99,7 +107,7 @@ namespace dstd
 		void insert(iterator position, iterator first, iterator last);
 		iterator erase(iterator position);
 		iterator erase(iterator first, iterator last);
-		void swap(vector& v);
+		///void swap(vector& v);
 		void clear();
 		
 		
@@ -108,38 +116,39 @@ namespace dstd
 			
 		private:
 		
-		allocator a;
+		allocator<T> a;
 		unsigned int n_data;
 		unsigned int n_memory;
 		T* p;
 		
-		// Friends
-		
-		friend void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b);
+		///// Friends
+		///friend void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b);
 	};
 	
-	template <class T>
-	swap(dstd::vector<T>& a, dstd::vector<T>& b);
+	///template <class T>
+	///swap(dstd::vector<T>& a, dstd::vector<T>& b);
 }
 	
 // Iterator operators
 
 template <class T>
-bool operator==(const dstd::vector<T>::iterator& a, const dstd::vector<T>::iterator& b)
+bool operator==(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
 
 template <class T>
-bool operator<(const dstd::vector<T>::iterator& a, const dstd::vector<T>::iterator& b)
+bool operator<(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
 
 template <class T>
-bool operator!=(const dstd::vector<T>::iterator& a, const dstd::vector<T>::iterator& b)
+bool operator!=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
 
 template <class T>
-bool operator>(const dstd::vector<T>::iterator& a, const dstd::vector<T>::iterator& b);
+bool operator>(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
 
 template <class T>
-bool operator>=(const dstd::vector<T>::iterator& a, const dstd::vector<T>::iterator& b);
+bool operator>=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
 
 template <class T>
-bool operator<=(const dstd::vector<T>::iterator& a, const dstd::vector<T>::iterator& b);
+bool operator<=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+
+#include "vector.cxx"
 
 #endif
