@@ -1,6 +1,5 @@
 #include "allocator.hxx"
 #include "exception.hxx"
-//#include "vector.hxx"
 
 #include <cassert>
 #include <algorithm>
@@ -17,13 +16,13 @@
 
 template <class T>
 dstd::vector<T>::vector()
-	: p(0), n_data(0), n_memory(0)
+	: n_data(0), n_memory(0), p(0)
 {}
 
 
 template <class T>
 dstd::vector<T>::vector(unsigned int n, const T& value)
-	: p(0), n_data(0), n_memory(0)
+	: n_data(0), n_memory(0), p(0)
 {
 	this->assign(n, value);
 }
@@ -31,7 +30,7 @@ dstd::vector<T>::vector(unsigned int n, const T& value)
 
 template <class T>
 dstd::vector<T>::vector(iterator first, iterator last)
-	: p(0), n_data(0), n_memory(0)
+	: n_data(0), n_memory(0), p(0)
 {
 	this->assign(first, last);
 }
@@ -39,7 +38,7 @@ dstd::vector<T>::vector(iterator first, iterator last)
 
 template <class T>
 dstd::vector<T>::vector(const vector& v)
-	: p(0), n_data(0), n_memory(0)
+	: n_data(0), n_memory(0), p(0)
 {
 	this->assign(v.begin(), v.end());
 }
@@ -77,11 +76,11 @@ typename dstd::vector<T>::iterator dstd::vector<T>::begin()
 }
 
 
-///template <class T>
-///dstd::vector<T>::const_iterator dstd::vector<T>::begin() const
-///{
-///	return dstd::vector<T>::const_iterator( this->p );
-///}
+template <class T>
+typename dstd::vector<T>::const_iterator dstd::vector<T>::begin() const
+{
+	return dstd::vector<T>::const_iterator( this->p );
+}
 
 
 template <class T>
@@ -91,11 +90,11 @@ typename dstd::vector<T>::iterator dstd::vector<T>::end()
 }
 
 
-///template <class T>
-///dstd::vector<T>::const_iterator dstd::vector<T>::end() const
-///{
-///	return dstd::vector<T>::const_iterator( &(this->p[ this->size() - 1]) );
-///}
+template <class T>
+typename dstd::vector<T>::const_iterator dstd::vector<T>::end() const
+{
+	return dstd::vector<T>::iterator( this->p + this->size() );
+}
 
 
 template <class T>
@@ -241,7 +240,7 @@ T& dstd::vector<T>::at(unsigned int i)
 	{
 		throw dstd::out_of_range();
 	}
-	return this->p[i];
+	return (this->p)[i];
 }
 
 
@@ -252,7 +251,7 @@ const T& dstd::vector<T>::at(unsigned int i) const
 	{
 		throw dstd::out_of_range();
 	}
-	return this->p[i];
+	return (this->p)[i];
 }
 
 
@@ -302,11 +301,11 @@ const T& dstd::vector<T>::back() const
 
 
 template <class T>
-void dstd::vector<T>::assign(iterator first, iterator last)
+void dstd::vector<T>::assign(const_iterator first, const_iterator last)
 {
-	this->erase();
+	this->erase(this->begin(), this->end());
 	this->reserve( last - first );
-	dstd::vector<T>::iterator it_from = first;
+	dstd::vector<T>::const_iterator it_from = first;
 	while( it_from < last )
 	{
 		this->push_back( *it_from );
@@ -318,7 +317,7 @@ void dstd::vector<T>::assign(iterator first, iterator last)
 template <class T>
 void dstd::vector<T>::assign(unsigned int n, const T& value)
 {
-	this->erase();
+	this->erase(this->begin(), this->end());
 	this->reserve(n);
 	for(unsigned int i = 0; i != n; ++i)
 	{
@@ -400,7 +399,7 @@ dstd::vector<T>::insert(typename dstd::vector<T>::iterator position, unsigned in
 
 template <class T>
 typename dstd::vector<T>::iterator
-dstd::vector<T>::insert(iterator position, iterator first, iterator last)
+dstd::vector<T>::insert(iterator position, const_iterator first, const_iterator last)
 {
 	if( position > this->end() || position < this->begin() )
 	{
@@ -437,7 +436,7 @@ dstd::vector<T>::insert(iterator position, iterator first, iterator last)
 	}
 	
 	// Insert the new elements into the gap
-	dstd::vector<T>::iterator it_from = first;
+	dstd::vector<T>::const_iterator it_from = first;
 	dstd::vector<T>::iterator it_to = position;
 	while( it_from < last )
 	{
@@ -534,6 +533,17 @@ void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
 	b.p = temp_p;
 	b.n_data = temp_n_data;
 	b.n_memory = temp_n_memory;
+}
+
+template <class T>
+bool operator== (const dstd::vector<T>& v1, const dstd::vector<T>& v2)
+{
+	if( v1.size() != v2.size() ) return false;
+	for(unsigned int i = 0; i != v1.size(); ++i)
+	{
+		if( v1[i] != v2[i] ) return false;
+	}
+	return true;
 }
 
 

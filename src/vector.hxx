@@ -49,6 +49,35 @@ namespace dstd
 			T* p;
 			const unsigned int size;
 		};
+		class const_iterator
+		{
+			public:
+			const_iterator(const T* ptr = 0) : p(ptr), size(sizeof(T)) {}
+			const_iterator(const iterator& it) : p(&(*it)), size(sizeof(T)) {}
+			const T& operator* () const { return *(this->p); }
+			const_iterator& operator=(const iterator& rhs) { this->p = &(*rhs); return *this; }
+			// Operators with int
+			const_iterator& operator+=(const int& n){ this->p += n; return (*this); }
+			const_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
+			const_iterator operator+ (const int& n){ const_iterator it(*this); it += n; return it; }
+			const_iterator operator- (const int& n){ const_iterator it(*this); it -= n; return it; }
+			// Operators with iterators
+			int operator- (const const_iterator& rhs){ return ( this->p - &(*rhs) ); }
+			const_iterator& operator++() { (*this) += 1; return (*this); }
+			const_iterator& operator++(int) { const_iterator temp(*this); ++(*this); return temp; }
+			const_iterator& operator--() { (*this) -= 1; return (*this); }
+			const_iterator& operator--(int) { const_iterator temp(*this); --(*this); return temp; }
+			bool operator==(const const_iterator& rhs) const { return ( this->p == &(*rhs) ); }
+			bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
+			bool operator< (const const_iterator& rhs) const { return ( this->p < &(*rhs) ); }
+			bool operator> (const const_iterator& rhs) const { return ( this->p > &(*rhs) ); }
+			bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
+			bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
+			
+			private:
+			const T* p;
+			const unsigned int size;
+		};
 		class reverse_iterator
 		{
 			public:
@@ -81,9 +110,9 @@ namespace dstd
 		
 		// Iterators
 		iterator begin();
-		///const_iterator begin() const;
+		const_iterator begin() const;
 		iterator end();
-		///const_iterator end() const;
+		const_iterator end() const;
 		reverse_iterator rbegin();
 		///const_reverse_iterator rbegin() const;
 		reverse_iterator rend();
@@ -108,13 +137,13 @@ namespace dstd
 		const T& back() const;
 		
 		// Modifiers
-		void assign(iterator first, iterator last);
+		void assign(const_iterator first, const_iterator last);
 		void assign(unsigned int n, const T& value);
 		void push_back(const T& value);
 		void pop_back();
 		iterator insert(iterator position, const T& value);
 		iterator insert(iterator position, unsigned int n, const T& value);
-		iterator insert(iterator position, iterator first, iterator last);
+		iterator insert(iterator position, const_iterator first, const_iterator last);
 		iterator erase(iterator position);
 		iterator erase(iterator first, iterator last);
 		void swap(vector& v);
