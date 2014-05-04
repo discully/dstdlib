@@ -11,13 +11,13 @@
 
 namespace dstd
 {
-	template <class T> class vector;
+	template <class T, class A = dstd::allocator<T>()> class vector;
 	template <class T> void swap(dstd::vector<T>& a, dstd::vector<T>& b);
 }
 
 
 
-template < class T>
+template < class T, class A >
 class dstd::vector
 {
 	public:
@@ -155,31 +155,31 @@ class dstd::vector
 	
 	iterator begin()
 	{
-		return dstd::vector<T>::iterator( this->p );
+		return iterator( this->p );
 	}
 	
 	
 	const_iterator begin() const
 	{
-		return dstd::vector<T>::const_iterator( this->p );
+		return const_iterator( this->p );
 	}
 
 
 	iterator end()
 	{
-		return dstd::vector<T>::iterator( this->p + this->size() );
+		return iterator( this->p + this->size() );
 	}
 	
 	
 	const_iterator end() const
 	{
-		return dstd::vector<T>::iterator( this->p + this->size() );
+		return iterator( this->p + this->size() );
 	}
 
 
 	reverse_iterator rbegin()
 	{
-		return dstd::vector<T>::reverse_iterator( this->begin() );
+		return reverse_iterator( this->begin() );
 	}
 	
 	
@@ -215,7 +215,7 @@ class dstd::vector
 	{
 		if( n < this->size() )
 		{
-			dstd::vector<T>::iterator first = this->begin() + n;
+			iterator first = this->begin() + n;
 			this->erase( first, this->end() );
 		}
 		else if( n > this->size() )
@@ -363,7 +363,7 @@ class dstd::vector
 	{
 		this->erase(this->begin(), this->end());
 		this->reserve( last - first );
-		dstd::vector<T>::const_iterator it_from = first;
+		const_iterator it_from = first;
 		while( it_from < last )
 		{
 			this->push_back( *it_from );
@@ -423,8 +423,8 @@ class dstd::vector
 		if( position < this->end() )
 		{
 			// Shuffle the last n elements n positions along
-			dstd::vector<T>::iterator it_from = dstd::vector<T>::iterator( &(this->back()) );
-			dstd::vector<T>::iterator it_to = it_from + n;
+			iterator it_from = iterator( &(this->back()) );
+			iterator it_to = it_from + n;
 			while( it_from > position )
 			{
 				this->a.construct( &(*it_to), *it_from );
@@ -435,7 +435,7 @@ class dstd::vector
 		}
 		
 		// Insert the new elements into the gap
-		dstd::vector<T>::iterator it_to = position;
+		iterator it_to = position;
 		for(unsigned int i = 0; i != n; ++i)
 		{
 			this->a.construct( &(*it_to), value );
@@ -474,8 +474,8 @@ class dstd::vector
 		if( position < this->end() )
 		{
 			// Shuffle the last n elements n positions along
-			dstd::vector<T>::iterator it_from = dstd::vector<T>::iterator( &(this->back()) );
-			dstd::vector<T>::iterator it_to = it_from + n;
+			iterator it_from = iterator( &(this->back()) );
+			iterator it_to = it_from + n;
 			while( it_from > position )
 			{
 				this->a.construct( &(*it_to), *it_from );
@@ -486,8 +486,8 @@ class dstd::vector
 		}
 		
 		// Insert the new elements into the gap
-		dstd::vector<T>::const_iterator it_from = first;
-		dstd::vector<T>::iterator it_to = position;
+		const_iterator it_from = first;
+		iterator it_to = position;
 		while( it_from < last )
 		{
 			this->a.construct( &(*it_to), *it_from );
@@ -522,9 +522,9 @@ class dstd::vector
 		
 		unsigned int n_remove = static_cast<unsigned int>( last - first );
 		
-		dstd::vector<T>::iterator it_erase = first;
-		dstd::vector<T>::iterator it_shuffle = last;
-		const dstd::vector<T>::iterator it_end = this->end();
+		iterator it_erase = first;
+		iterator it_shuffle = last;
+		const iterator it_end = this->end();
 		
 		// erase existing elements, and shuffle elements after last into the gap left behind
 		while( it_erase < it_end )
@@ -622,7 +622,5 @@ bool operator== (const dstd::vector<T>& v1, const dstd::vector<T>& v2)
 ///
 ///template <class T>
 ///bool operator<=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-
-//#include "vector.txx"
 
 #endif
