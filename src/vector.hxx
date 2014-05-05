@@ -11,7 +11,7 @@
 
 namespace dstd
 {
-	template <class T, class A = dstd::allocator<T>()> class vector;
+	template <class T, class A = dstd::allocator<T> > class vector;
 	template <class T> void swap(dstd::vector<T>& a, dstd::vector<T>& b);
 }
 
@@ -21,6 +21,13 @@ template < class T, class A >
 class dstd::vector
 {
 	public:
+	
+	typedef T value_type;
+	typedef A allocator_type;
+	typedef typename allocator_type::reference reference;
+	typedef typename allocator_type::const_reference const_reference;
+	typedef typename allocator_type::pointer pointer;
+	typedef typename allocator_type::const_pointer const_pointer;
 	
 	class iterator
 	{
@@ -563,7 +570,7 @@ class dstd::vector
 		
 	private:
 	
-	allocator<T> a;
+	allocator_type a;
 	unsigned int n_data;
 	unsigned int n_memory;
 	T* p;
