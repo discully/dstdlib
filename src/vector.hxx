@@ -6,6 +6,7 @@
 #include <limits>
 
 #include "allocator.hxx"
+#include "iterator.hxx"
 
 
 
@@ -86,23 +87,25 @@ class dstd::vector
 		const T* p;
 		const unsigned int size;
 	};
-	class reverse_iterator
-	{
-		public:
-		reverse_iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
-		const reverse_iterator& operator+= (const unsigned int& n) { this->p -= (this->size * n); return this; }
-		const reverse_iterator& operator-= (const unsigned int& n) { this->p += (this->size * n); return this; }
-		const reverse_iterator& operator+ (const unsigned int& n) { this->p += n; return this; }
-		const reverse_iterator& operator- (const unsigned int& n) { this->p -= n; return this; }
-		reverse_iterator& operator++() { this->p += 1; return this; }
-		reverse_iterator& operator++(int) { reverse_iterator temp(this); ++(*this); return temp; }
-		reverse_iterator& operator--() { this->p -= 1; return this; }
-		reverse_iterator& operator--(int) { reverse_iterator temp(*this); --(*this); return temp; }
-		
-		private:
-		T* p;
-		const unsigned int size;
-	};
+	//class reverse_iterator
+	//{
+	//	public:
+	//	reverse_iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
+	//	const reverse_iterator& operator+= (const unsigned int& n) { this->p -= (this->size * n); return this; }
+	//	const reverse_iterator& operator-= (const unsigned int& n) { this->p += (this->size * n); return this; }
+	//	const reverse_iterator& operator+ (const unsigned int& n) { this->p += n; return this; }
+	//	const reverse_iterator& operator- (const unsigned int& n) { this->p -= n; return this; }
+	//	reverse_iterator& operator++() { this->p += 1; return this; }
+	//	reverse_iterator& operator++(int) { reverse_iterator temp(this); ++(*this); return temp; }
+	//	reverse_iterator& operator--() { this->p -= 1; return this; }
+	//	reverse_iterator& operator--(int) { reverse_iterator temp(*this); --(*this); return temp; }
+	//	
+	//	private:
+	//	T* p;
+	//	const unsigned int size;
+	//};
+	typedef dstd::reverse_iterator< iterator > reverse_iterator;
+	typedef dstd::reverse_iterator< const_iterator > const_reverse_iterator;
 	
 	
 	//
@@ -127,7 +130,7 @@ class dstd::vector
 	}
 	
 	
-	vector(const vector& v)
+	vector(const vector<T>& v)
 		: n_data(0), n_memory(0), p(0)
 	{
 		this->assign(v.begin(), v.end());
