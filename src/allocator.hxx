@@ -7,7 +7,13 @@ namespace dstd
 	class allocator
 	{
 		public:
-		
+			
+			typedef T value_type;
+			typedef T* pointer;
+			typedef T& reference;
+			typedef const T* const_pointer;
+			typedef const T& const_reference;
+			
 			allocator(){};
 			~allocator(){};
 			
