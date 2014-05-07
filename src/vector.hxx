@@ -30,11 +30,13 @@ class dstd::vector
 	typedef typename allocator_type::pointer pointer;
 	typedef typename allocator_type::const_pointer const_pointer;
 	
-	template <class Pointer, class Reference>
-	class base_iterator;
+	//template <class Pointer, class Reference>
+	//class base_iterator;
+	class iterator;
+	class const_iterator;
 	
-	typedef base_iterator< pointer, reference > iterator;
-	typedef base_iterator< const_pointer, const_reference > const_iterator;
+	//typedef base_iterator< pointer, reference > iterator;
+	//typedef base_iterator< const_pointer, const_reference > const_iterator;
 	
 	typedef dstd::reverse_iterator< iterator > reverse_iterator;
 	typedef dstd::reverse_iterator< const_iterator > const_reverse_iterator;
@@ -65,7 +67,7 @@ class dstd::vector
 	vector(const vector<T>& v)
 		: n_data(0), n_memory(0), p(0)
 	{
-		this->assign(v.begin(), v.end());
+		this->assign<const_iterator>(v.begin(), v.end());
 	}
 	
 	
@@ -115,26 +117,32 @@ class dstd::vector
 	
 	const_iterator end() const
 	{
-		return iterator( this->p + this->size() );
+		return const_iterator( this->p + this->size() );
 	}
 
 
 	reverse_iterator rbegin()
 	{
-		return reverse_iterator( this->begin() );
+		return reverse_iterator( this->end() );
 	}
 	
 	
-	///const_reverse_iterator rbegin() const;
+	const_reverse_iterator rbegin() const
+	{
+		return const_reverse_iterator( this->end() );
+	}
 	
 	
 	reverse_iterator rend()
 	{
-		return dstd::vector<T>::reverse_iterator( this->end() );
+		return reverse_iterator( this->begin() );
 	}
 	
 	
-	///const_reverse_iterator rend() const;
+	const_reverse_iterator rend() const
+	{
+		return const_reverse_iterator( this->begin() );
+	}
 	
 	
 	//
@@ -301,11 +309,12 @@ class dstd::vector
 	// Modifiers
 	
 	
-	void assign(const_iterator first, const_iterator last)
+	template <class InputIterator>
+	void assign(InputIterator first, InputIterator last)
 	{
 		this->erase(this->begin(), this->end());
 		this->reserve( last - first );
-		const_iterator it_from = first;
+		InputIterator it_from = first;
 		while( it_from < last )
 		{
 			this->push_back( *it_from );
@@ -340,10 +349,15 @@ class dstd::vector
 	
 	iterator insert(iterator position, const T& value)
 	{
-		return this->insert(position, 1, value);
+		return this->insert(position, 1U, value);
 	}
 	
 	
+	// TODO: Broken!!!
+	// This version of insert, and the one which follows it, have a problem when T is of integer types.
+	// Then type inference allows the letter version to be called when this version is intended, and it breaks.
+	// This is fixed in the GCC STL by checking whether the arguments are integers in the second version, and
+	// calling the correct form of insert.
 	iterator insert(iterator position, unsigned int n, const T& value)
 	{
 		if( position > this->end() || position < this->begin() )
@@ -391,7 +405,9 @@ class dstd::vector
 	}
 	
 	
-	iterator insert(iterator position, const_iterator first, const_iterator last)
+	// See note on preceding version of insert about problems due to type conversion
+	template <class InputIterator>
+	iterator insert(iterator position, InputIterator first, InputIterator last)
 	{
 		if( position > this->end() || position < this->begin() )
 		{
@@ -428,7 +444,7 @@ class dstd::vector
 		}
 		
 		// Insert the new elements into the gap
-		const_iterator it_from = first;
+		InputIterator it_from = first;
 		iterator it_to = position;
 		while( it_from < last )
 		{
@@ -518,39 +534,81 @@ class dstd::vector
 
 
 template <class T, class Allocator>
-template <class Pointer, class Reference>
-class dstd::vector<T, Allocator>::base_iterator
+class dstd::vector<T, Allocator>::iterator
 {
 	public:
 		
 		typedef typename dstd::vector<T, Allocator>::value_type value_type;
-		typedef Reference reference;
-		typedef Pointer pointer;
+		typedef value_type& reference;
+		typedef value_type* pointer;
 		
-		base_iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
-		T& operator* () const { return *(this->p); }
-		base_iterator& operator=(const base_iterator& rhs) { this->p = &(*rhs); return *this; }
+		iterator(pointer ptr = 0) : p(ptr), size(sizeof(T)) {}
+		iterator(const iterator& it) : p( &(*it) ), size(sizeof(T)) {}
+		reference operator* () const { return *(this->p); }
+		pointer operator-> () const { return this->p; }
+		iterator& operator=(const iterator& rhs) { this->p = &(*rhs); return *this; }
 		// Operators with int
-		base_iterator& operator+=(const int& n){ this->p += n; return (*this); }
-		base_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
-		base_iterator operator+ (const int& n){ base_iterator it(*this); it += n; return it; }
-		base_iterator operator- (const int& n){ base_iterator it(*this); it -= n; return it; }
+		iterator& operator+=(const int& n){ this->p += n; return (*this); }
+		iterator& operator-=(const int& n){ this->p -= n; return (*this); }
+		iterator operator+ (const int& n){ iterator it(*this); it += n; return it; }
+		iterator operator- (const int& n){ iterator it(*this); it -= n; return it; }
 		// Operators with iterators
-		int operator- (const base_iterator& rhs){ return ( this->p - &(*rhs) ); }
-		base_iterator& operator++() { (*this) += 1; return (*this); }
-		base_iterator& operator++(int) { base_iterator temp(*this); ++(*this); return temp; }
-		base_iterator& operator--() { (*this) -= 1; return (*this); }
-		base_iterator& operator--(int) { base_iterator temp(*this); --(*this); return temp; }
-		bool operator==(const base_iterator& rhs) const { return ( this->p == &(*rhs) ); }
-		bool operator!=(const base_iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator< (const base_iterator& rhs) const { return ( this->p < &(*rhs) ); }
-		bool operator> (const base_iterator& rhs) const { return ( this->p > &(*rhs) ); }
-		bool operator<=(const base_iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator>=(const base_iterator& rhs) const { return ! ( *this < rhs ); }
+		int operator- (const iterator& rhs){ return this->p - &(*rhs); }
+		iterator& operator++() { (*this) += 1; return (*this); }
+		iterator& operator++(int) { iterator temp(*this); ++(*this); return temp; }
+		iterator& operator--() { (*this) -= 1; return (*this); }
+		iterator& operator--(int) { iterator temp(*this); --(*this); return temp; }
+		bool operator==(const iterator& rhs) const { return ( this->p == &(*rhs) ); }
+		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
+		bool operator< (const iterator& rhs) const { return ( this->p < &(*rhs) ); }
+		bool operator> (const iterator& rhs) const { return ( this->p > &(*rhs) ); }
+		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
+		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
 	
 	private:
 		
 		T* p;
+		const unsigned int size;
+};
+
+
+
+template <class T, class Allocator>
+class dstd::vector<T, Allocator>::const_iterator
+{
+	public:
+		
+		typedef typename dstd::vector<T, Allocator>::value_type value_type;
+		typedef const value_type& reference;
+		typedef const value_type* pointer;
+		
+		const_iterator(pointer ptr = 0) : p(ptr), size(sizeof(T)) {}
+		const_iterator(const const_iterator& it) : p( &(*it) ), size(sizeof(T)) {}
+		reference operator* () const { return *(this->p); }
+		pointer operator-> () const { return this->p; }
+		const_iterator& operator=(const const_iterator& rhs) { this->p = &(*rhs); return *this; }
+		const_iterator& operator=(const dstd::vector<T, Allocator>::iterator& rhs) { this->p = &(*rhs); return *this; }
+		// Operators with int
+		const_iterator& operator+=(const int& n){ this->p += n; return (*this); }
+		const_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
+		const_iterator operator+ (const int& n){ const_iterator it(*this); it += n; return it; }
+		const_iterator operator- (const int& n){ const_iterator it(*this); it -= n; return it; }
+		// Operators with iterators
+		int operator- (const const_iterator& rhs){ return this->p - &(*rhs); }
+		const_iterator& operator++() { (*this) += 1; return (*this); }
+		const_iterator& operator++(int) { const_iterator temp(*this); ++(*this); return temp; }
+		const_iterator& operator--() { (*this) -= 1; return (*this); }
+		const_iterator& operator--(int) { const_iterator temp(*this); --(*this); return temp; }
+		bool operator==(const const_iterator& rhs) const { return ( this->p == &(*rhs) ); }
+		bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
+		bool operator< (const const_iterator& rhs) const { return ( this->p < &(*rhs) ); }
+		bool operator> (const const_iterator& rhs) const { return ( this->p > &(*rhs) ); }
+		bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
+		bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
+	
+	private:
+		
+		pointer p;
 		const unsigned int size;
 };
 
