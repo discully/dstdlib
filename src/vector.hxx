@@ -30,80 +30,12 @@ class dstd::vector
 	typedef typename allocator_type::pointer pointer;
 	typedef typename allocator_type::const_pointer const_pointer;
 	
-	class iterator
-	{
-		public:
-		iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
-		T& operator* () const { return *(this->p); }
-		iterator& operator=(const iterator& rhs) { this->p = &(*rhs); return *this; }
-		// Operators with int
-		iterator& operator+=(const int& n){ this->p += n; return (*this); }
-		iterator& operator-=(const int& n){ this->p -= n; return (*this); }
-		iterator operator+ (const int& n){ iterator it(*this); it += n; return it; }
-		iterator operator- (const int& n){ iterator it(*this); it -= n; return it; }
-		// Operators with iterators
-		int operator- (const iterator& rhs){ return ( this->p - &(*rhs) ); }
-		iterator& operator++() { (*this) += 1; return (*this); }
-		iterator& operator++(int) { iterator temp(*this); ++(*this); return temp; }
-		iterator& operator--() { (*this) -= 1; return (*this); }
-		iterator& operator--(int) { iterator temp(*this); --(*this); return temp; }
-		bool operator==(const iterator& rhs) const { return ( this->p == &(*rhs) ); }
-		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator< (const iterator& rhs) const { return ( this->p < &(*rhs) ); }
-		bool operator> (const iterator& rhs) const { return ( this->p > &(*rhs) ); }
-		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
-		
-		private:
-		T* p;
-		const unsigned int size;
-	};
-	class const_iterator
-	{
-		public:
-		const_iterator(const T* ptr = 0) : p(ptr), size(sizeof(T)) {}
-		const_iterator(const iterator& it) : p(&(*it)), size(sizeof(T)) {}
-		const T& operator* () const { return *(this->p); }
-		const_iterator& operator=(const iterator& rhs) { this->p = &(*rhs); return *this; }
-		// Operators with int
-		const_iterator& operator+=(const int& n){ this->p += n; return (*this); }
-		const_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
-		const_iterator operator+ (const int& n){ const_iterator it(*this); it += n; return it; }
-		const_iterator operator- (const int& n){ const_iterator it(*this); it -= n; return it; }
-		// Operators with iterators
-		int operator- (const const_iterator& rhs){ return ( this->p - &(*rhs) ); }
-		const_iterator& operator++() { (*this) += 1; return (*this); }
-		const_iterator& operator++(int) { const_iterator temp(*this); ++(*this); return temp; }
-		const_iterator& operator--() { (*this) -= 1; return (*this); }
-		const_iterator& operator--(int) { const_iterator temp(*this); --(*this); return temp; }
-		bool operator==(const const_iterator& rhs) const { return ( this->p == &(*rhs) ); }
-		bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator< (const const_iterator& rhs) const { return ( this->p < &(*rhs) ); }
-		bool operator> (const const_iterator& rhs) const { return ( this->p > &(*rhs) ); }
-		bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
-		
-		private:
-		const T* p;
-		const unsigned int size;
-	};
-	//class reverse_iterator
-	//{
-	//	public:
-	//	reverse_iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
-	//	const reverse_iterator& operator+= (const unsigned int& n) { this->p -= (this->size * n); return this; }
-	//	const reverse_iterator& operator-= (const unsigned int& n) { this->p += (this->size * n); return this; }
-	//	const reverse_iterator& operator+ (const unsigned int& n) { this->p += n; return this; }
-	//	const reverse_iterator& operator- (const unsigned int& n) { this->p -= n; return this; }
-	//	reverse_iterator& operator++() { this->p += 1; return this; }
-	//	reverse_iterator& operator++(int) { reverse_iterator temp(this); ++(*this); return temp; }
-	//	reverse_iterator& operator--() { this->p -= 1; return this; }
-	//	reverse_iterator& operator--(int) { reverse_iterator temp(*this); --(*this); return temp; }
-	//	
-	//	private:
-	//	T* p;
-	//	const unsigned int size;
-	//};
+	template <class Pointer, class Reference>
+	class base_iterator;
+	
+	typedef base_iterator< pointer, reference > iterator;
+	typedef base_iterator< const_pointer, const_reference > const_iterator;
+	
 	typedef dstd::reverse_iterator< iterator > reverse_iterator;
 	typedef dstd::reverse_iterator< const_iterator > const_reverse_iterator;
 	
@@ -582,6 +514,47 @@ class dstd::vector
 	template <class TT>
 	friend void dstd::swap(vector<TT>& a, vector<TT>& b);
 };
+
+
+
+template <class T, class Allocator>
+template <class Pointer, class Reference>
+class dstd::vector<T, Allocator>::base_iterator
+{
+	public:
+		
+		typedef typename dstd::vector<T, Allocator>::value_type value_type;
+		typedef Reference reference;
+		typedef Pointer pointer;
+		
+		base_iterator(T* ptr = 0) : p(ptr), size(sizeof(T)) {}
+		T& operator* () const { return *(this->p); }
+		base_iterator& operator=(const base_iterator& rhs) { this->p = &(*rhs); return *this; }
+		// Operators with int
+		base_iterator& operator+=(const int& n){ this->p += n; return (*this); }
+		base_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
+		base_iterator operator+ (const int& n){ base_iterator it(*this); it += n; return it; }
+		base_iterator operator- (const int& n){ base_iterator it(*this); it -= n; return it; }
+		// Operators with iterators
+		int operator- (const base_iterator& rhs){ return ( this->p - &(*rhs) ); }
+		base_iterator& operator++() { (*this) += 1; return (*this); }
+		base_iterator& operator++(int) { base_iterator temp(*this); ++(*this); return temp; }
+		base_iterator& operator--() { (*this) -= 1; return (*this); }
+		base_iterator& operator--(int) { base_iterator temp(*this); --(*this); return temp; }
+		bool operator==(const base_iterator& rhs) const { return ( this->p == &(*rhs) ); }
+		bool operator!=(const base_iterator& rhs) const { return ! ( *this == rhs ); }
+		bool operator< (const base_iterator& rhs) const { return ( this->p < &(*rhs) ); }
+		bool operator> (const base_iterator& rhs) const { return ( this->p > &(*rhs) ); }
+		bool operator<=(const base_iterator& rhs) const { return ! ( *this > rhs ); }
+		bool operator>=(const base_iterator& rhs) const { return ! ( *this < rhs ); }
+	
+	private:
+		
+		T* p;
+		const unsigned int size;
+};
+
+
 
 template <class T>
 void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
