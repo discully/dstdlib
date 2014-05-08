@@ -6,6 +6,7 @@
 namespace dstd
 {
 	template <class T1, class T2> class pair;
+	template <class T1, class T2> pair<T1, T2> make_pair(const T1& a, const T2& b);
 }
 
 
@@ -55,7 +56,7 @@ class dstd::pair
 
 
 //
-// Relational Operators
+// Pair Relational Operators
 
 
 template <class T1, class T2>
@@ -97,6 +98,17 @@ template <class T1, class T2>
 bool operator>= (const dstd::pair<T1,T2>& lhs, const dstd::pair<T1,T2>& rhs)
 {
 	return ( lhs > rhs || lhs == rhs );
+}
+
+
+
+//
+// Other Pair Functions
+
+
+template <class T1, class T2> dstd::pair<T1, T2> dstd::make_pair(const T1& a, const T2& b)
+{
+	return dstd::pair<T1, T2>( a, b );
 }
 
 

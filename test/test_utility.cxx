@@ -104,6 +104,15 @@ int main()
 	}
 	
 	
+	{
+		int i = 4;
+		double pi = 3.141;
+		dstd::pair<int, double> p1(i, pi);
+		dstd::pair<int, double> p2 = dstd::make_pair(i, pi);
+		t.testEqual("make_pair", p1, p2);
+	}
+	
+	
 	t.report();
 	
 	
