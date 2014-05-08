@@ -7,6 +7,16 @@ namespace dstd
 {
 	template <class T1, class T2> class pair;
 	template <class T1, class T2> pair<T1, T2> make_pair(const T1& a, const T2& b);
+	template <class T> void swap(const T& a, const T& b);
+	
+	namespace rel_ops
+	{
+		template <class T> bool operator!= (const T& x, const T& y);
+		template <class T> bool operator> (const T& x, const T& y);
+		template <class T> bool operator<= (const T& x, const T& y);
+		template <class T> bool operator>= (const T& x, const T& y);
+		template <class T> bool foo (const T& x, const T& y);
+	}
 }
 
 
@@ -109,6 +119,51 @@ bool operator>= (const dstd::pair<T1,T2>& lhs, const dstd::pair<T1,T2>& rhs)
 template <class T1, class T2> dstd::pair<T1, T2> dstd::make_pair(const T1& a, const T2& b)
 {
 	return dstd::pair<T1, T2>( a, b );
+}
+
+
+
+//
+// swap
+
+template <class T> void dstd::swap(const T& a, const T& b)
+{
+	const T temp = a;
+	a = b;
+	b = temp;
+}
+
+
+
+//
+// rel_ops
+
+
+template <class T>
+bool dstd::rel_ops::operator!=(const T& x, const T& y)
+{
+	return ! (x == y);
+}
+
+
+template <class T>
+bool dstd::rel_ops::operator> (const T& x, const T& y)
+{
+	return ! (x == y || x < y);
+}
+
+
+template <class T>
+bool dstd::rel_ops::operator<= (const T& x, const T& y)
+{
+	return (x == y || x < y);
+}
+
+
+template <class T>
+bool dstd::rel_ops::operator>= (const T& x, const T& y)
+{
+	return ( x == y || dstd::rel_ops::operator>(x, y) );
 }
 
 

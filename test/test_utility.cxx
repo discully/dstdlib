@@ -113,6 +113,28 @@ int main()
 	}
 	
 	
+	{
+		dstd::pair<double, double> a(1.0, 10.0);
+		dstd::pair<double, double> b(1.0, 20.0);
+		dstd::pair<double, double> c = a;
+		
+		t.testEqual("rel_ops::operator!= 1", dstd::rel_ops::operator!=( a, b ), true);
+		t.testEqual("rel_ops::operator!= 2", dstd::rel_ops::operator!=( a, c ), false);
+		
+		t.testEqual("rel_ops::operator> 1", dstd::rel_ops::operator>( a, b ), false);
+		t.testEqual("rel_ops::operator> 2", dstd::rel_ops::operator>( a, c ), false);
+		t.testEqual("rel_ops::operator> 3", dstd::rel_ops::operator>( b, a ), true);
+		
+		t.testEqual("rel_ops::operator<= 1", dstd::rel_ops::operator<=( a, b ), true);
+		t.testEqual("rel_ops::operator<= 2", dstd::rel_ops::operator<=( a, c ), true);
+		t.testEqual("rel_ops::operator<= 3", dstd::rel_ops::operator<=( b, a ), false);
+		
+		t.testEqual("rel_ops::operator>= 1", dstd::rel_ops::operator>=( a, b ), false);
+		t.testEqual("rel_ops::operator>= 2", dstd::rel_ops::operator>=( a, c ), true);
+		t.testEqual("rel_ops::operator>= 3", dstd::rel_ops::operator>=( b, a ), true);
+	}
+	
+	
 	t.report();
 	
 	
