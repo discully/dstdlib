@@ -629,12 +629,28 @@ void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
 	b.n_data = temp_n_data;
 	b.n_memory = temp_n_memory;
 }
-	
-	
-	
 
-template <class T>
-bool operator== (const dstd::vector<T>& v1, const dstd::vector<T>& v2)
+
+
+// TODO: implement other relational operators between vectors
+// template <class T, class Alloc>
+//   bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+// template <class T, class Alloc>
+//   bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+// template <class T, class Alloc>
+//   bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+// template <class T, class Alloc>
+//   bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+// template <class T, class Alloc>
+//   bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+// template <class T, class Alloc>
+//   bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+
+
+
+// TODO: re-implement using <algorithm>'s equal function
+template <class T, Allocator>
+bool operator== (const dstd::vector<T, Allocator>& v1, const dstd::vector<T, Allocator>& v2)
 {
 	if( v1.size() != v2.size() ) return false;
 	for(unsigned int i = 0; i != v1.size(); ++i)
@@ -643,25 +659,7 @@ bool operator== (const dstd::vector<T>& v1, const dstd::vector<T>& v2)
 	}
 	return true;
 }
-	
-// Iterator operators
 
-///template <class T>
-///bool operator==(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-///
-///template <class T>
-///bool operator<(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-///
-///template <class T>
-///bool operator!=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-///
-///template <class T>
-///bool operator>(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-///
-///template <class T>
-///bool operator>=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
-///
-///template <class T>
-///bool operator<=(const typename dstd::vector<T>::iterator& a, const typename dstd::vector<T>::iterator& b);
+
 
 #endif
