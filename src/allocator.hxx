@@ -25,6 +25,11 @@ class dstd::allocator
 		typedef const T* const_pointer;
 		typedef const T& const_reference;
 		
+		template <class OtherType>
+		struct rebind
+		{
+			typedef allocator< OtherType > other;
+		};
 		
 		allocator(){};
 		
