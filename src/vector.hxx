@@ -649,7 +649,7 @@ void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
 
 
 // TODO: re-implement using <algorithm>'s equal function
-template <class T, Allocator>
+template <class T, class Allocator>
 bool operator== (const dstd::vector<T, Allocator>& v1, const dstd::vector<T, Allocator>& v2)
 {
 	if( v1.size() != v2.size() ) return false;
