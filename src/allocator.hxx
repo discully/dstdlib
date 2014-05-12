@@ -31,10 +31,15 @@ class dstd::allocator
 			typedef allocator< OtherType > other;
 		};
 		
-		allocator(){};
+		
+		allocator(){}
 		
 		
-		~allocator(){};
+		template <class U>
+		allocator(const dstd::allocator<U>& a){}
+		
+		
+		~allocator(){}
 		
 		
 		T* address(T& obj) const
