@@ -22,7 +22,7 @@ namespace dstd
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << " Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
+				std::cout << "[FAILED] " << test_name << std::endl; //" Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
 				return this->fail();
 			}
 		}
@@ -37,7 +37,7 @@ namespace dstd
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << " Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
+				std::cout << "[FAILED] " << test_name << std::endl; //" Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
 				this->fail();
 				return false;
 			}
