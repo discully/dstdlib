@@ -223,7 +223,7 @@ class dstd::list
 		
 		void pop_back()
 		{
-			this->erase(iterator(this->n.prev));
+			this->erase(iterator(this->n->prev));
 		}
 		
 		
@@ -243,21 +243,10 @@ class dstd::list
 		
 		void insert (iterator position, size_t n, const value_type& val)
 		{
-			node* new_nodes = this->a.allocate(n);
-			
-			// create new nodes
-			node* new_node = new_nodes;
-			node* prev = position.p->prev;
 			for(unsigned int i = 0; i < n; ++i)
 			{
-				new_node = new_nodes + i;	
-				this->a.construct( new_node, node(val, prev, position.p) );
-				prev->next = new_node;
+				this->insert(position, val);
 			}
-			
-			// put nodes in list
-			position.p->prev->next = new_nodes;
-			position.p->prev = new_node;
 		}
 		
 		
@@ -271,11 +260,11 @@ class dstd::list
 		}
 		
 		
-		iterator erase (iterator position)
+		iterator erase(iterator position)
 		{
 			if( position == this->end() )
 			{
-				throw new dstd::out_of_range();
+				throw dstd::out_of_range();
 			}
 			
 			node* to_go = static_cast<node*>( position.p );
@@ -293,12 +282,11 @@ class dstd::list
 		}
 		
 		
-		iterator erase (iterator first, iterator last)
+		iterator erase(iterator first, iterator last)
 		{
 			while( first != last )
 			{
-				this->erase( first );
-				++first;
+				this->erase( first++ );
 			}
 			
 			return first;
@@ -308,22 +296,22 @@ class dstd::list
 		void swap(list& x)
 		{
 			node_base* temp( this->n );
-			this->n = x.p;
+			this->n = x.n;
 			x.n = temp;
 		}
 		
 		
-		void resize (size_t n, value_type val = value_type())
+		void resize(size_t n, value_type val = value_type())
 		{
 			size_t size = this->size();
-			while( n > size )
+			while( n < size )
 			{
 				this->pop_back();
-				--n;
+				--size;
 			}
-			if( n < size )
+			if( n > size )
 			{
-				this->insert(this->end(), (size-n), val);
+				this->insert(this->end(), (n-size), val);
 			}
 		}
 		
@@ -376,7 +364,7 @@ class dstd::list
 		void unique()
 		{
 			iterator first = this->begin();
-			iterator next = this-begin();
+			iterator next = this->begin();
 			++next;
 			while( next != this->end() )
 			{
@@ -396,7 +384,7 @@ class dstd::list
 		template <class BinaryPredicate> void unique (BinaryPredicate binary_pred)
 		{
 			iterator first = this->begin();
-			iterator next = this-begin();
+			iterator next = this->begin();
 			++next;
 			while( next != this->end() )
 			{
@@ -419,7 +407,7 @@ class dstd::list
 			iterator from = x.begin();
 			while( from != x.end() )
 			{
-				while( *in < *from )
+				while( in != this->end() && *in < *from )
 				{
 					++in;
 				}
@@ -435,7 +423,7 @@ class dstd::list
 			iterator from = x.begin();
 			while( from != x.end() )
 			{
-				while( comp(*in,*from) )
+				while( in != this->end() && comp(*in,*from) )
 				{
 					++in;
 				}
@@ -445,8 +433,8 @@ class dstd::list
 		}
 		
 		
-		//void sort()
-		//template <class Compare> void sort (Compare comp)
+		//TODO void sort()
+		//TODO template <class Compare> void sort (Compare comp)
 		
 		
 		void reverse()
@@ -576,13 +564,13 @@ class dstd::list<T, Allocator>::iterator
 		}
 		
 		
-		bool operator==(const iterator& it)
+		bool operator==(const iterator& it) const
 		{
 			return (this->p == it.p);
 		}
 		
 		
-		bool operator!=(const iterator& it)
+		bool operator!=(const iterator& it) const
 		{
 			return ! (*this == it);
 		}
@@ -661,13 +649,13 @@ class dstd::list<T, Allocator>::const_iterator
 		}
 		
 		
-		bool operator==(const const_iterator& it)
+		bool operator==(const const_iterator& it) const
 		{
 			return (this->p == it.p);
 		}
 		
 		
-		bool operator!=(const const_iterator& it)
+		bool operator!=(const const_iterator& it) const
 		{
 			return ! (*this == it);
 		}
