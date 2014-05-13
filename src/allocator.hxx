@@ -82,7 +82,7 @@ class dstd::allocator
 		
 		/// Releases a block of storage previously allocated with member allocate and not yet released
 		/// The elements in the array are not destroyed by a call to this member function.
-		void deallocate(T* p, unsigned int n)
+		void deallocate(T* p, size_t size = 0)
 		{
 			::operator delete( p );
 		}
