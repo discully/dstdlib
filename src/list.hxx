@@ -6,6 +6,7 @@
 #include <cstdlib> // size_t
 #include <limits>
 
+#include "dstd.hxx"
 #include "allocator.hxx"
 #include "exception.hxx"
 #include "iterator.hxx"
@@ -41,6 +42,7 @@ class dstd::list
 		class node_base;
 		class node;
 		typedef typename Allocator::template rebind<node>::other node_allocator_type;
+		
 	
 	
 	public:
@@ -241,22 +243,38 @@ class dstd::list
 		}
 		
 		
-		void insert (iterator position, size_t n, const value_type& val)
+	private:
+		template <class Integer>
+		void insertFix(iterator position, Integer n, const value_type& val, dstd::impl::TrueType)
 		{
-			for(unsigned int i = 0; i < n; ++i)
+			for(Integer i = 0; i < n; ++i)
 			{
 				this->insert(position, val);
 			}
 		}
 		
-		
-		template <class InputIterator> void insert (iterator position, InputIterator first, InputIterator last)
+		template <class InputIterator>
+		void insertFix (iterator position, InputIterator first, InputIterator last, dstd::impl::FalseType)
 		{
 			while(first != last)
 			{
 				this->insert(position, *first);
 				++first;
 			}
+		}
+	public:
+		
+		
+		void insert (iterator position, size_t n, const value_type& val)
+		{
+			this->insertFix( position, n, val, dstd::impl::TrueType());
+		}
+		
+		
+		template <class InputIterator> void insert (iterator position, InputIterator first, InputIterator last)
+		{
+			typedef typename dstd::impl::BoolType< std::numeric_limits<InputIterator>::is_integer >::bool_type is_integer;
+			this->insertFix( position, first, last, is_integer() );
 		}
 		
 		

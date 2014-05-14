@@ -106,29 +106,47 @@ int main()
 	
 	{
 		const size_t n = 5;
-		const double val = 1.1;
+		const double val_d = 1.1;
+		const int val_i = 2;
 		
-		dstd::list<double> l1;
-		dstd::list<double> l2;
+		dstd::list<double> l1_d, l2_d;
+		dstd::list<int> l1_i, l2_i;
 		for(unsigned int i = 0; i < n; ++i)
 		{
-			l1.push_back( val );
-			l2.push_back( i * val );
+			l1_d.push_back( val_d );
+			l2_d.push_back( i * val_d );
+			l1_i.push_back( val_i );
+			l2_i.push_back( i * val_i );
 		}
 		
 		{
-			dstd::list<double> a(n, val);
-			t.testEqual("list::list(n, val)", a, l1);
+			dstd::list<double> a_d(n, val_d);
+			t.testEqual("list::list<double>(n, val)", a_d, l1_d);
 		}
 		
 		{
-			dstd::list<double> b(l2.begin(), l2.end());
-			t.testEqual("list::list(first, last)", b, l2);
+			dstd::list<int> a_i(n, val_i);
+			t.testEqual("list::list<int>(n, val)", a_i, l1_i);
 		}
 		
 		{
-			dstd::list<double> c(l2);
-			t.testEqual("list::list(list)", c, l2);
+			dstd::list<double> b_d(l2_d.begin(), l2_d.end());
+			t.testEqual("list::list<double>(first, last)", b_d, l2_d);
+		}
+		
+		{
+			dstd::list<int> b_i(l2_i.begin(), l2_i.end());
+			t.testEqual("list::list<int>(first, last)", b_i, l2_i);
+		}
+		
+		{
+			dstd::list<double> c_d(l2_d);
+			t.testEqual("list::list<double>(list)", c_d, l2_d);
+		}
+		
+		{
+			dstd::list<int> c_i(l2_i);
+			t.testEqual("list::list<int>(list)", c_i, l2_i);
 		}
 	}
 	
@@ -144,28 +162,56 @@ int main()
 	}
 	
 	
+	//
+	// Assignment
+	
+	
 	{
-		dstd::list<int> l1;
-		for(int i = 0; i < 5; ++i)
-		{
-			l1.push_back(i);
-		}
-		dstd::list<int> l2 = l1;
+		dstd::list<double> l1(3, 4.5);
+		dstd::list<double> l2 = l1;
 		t.testEqual("list::operator=(list)", l1, l2);
 	}
 	
 	
+	//
+	// Iterators
+	
+	
 	{
-		dstd::list<int> l;
-		for(int i = 0; i < 5; ++i)
+		const size_t n = 10;
+		const double v = 1.1;
+		
+		dstd::list<double> l;
+		for(unsigned int i = 0; i < n; ++i)
 		{
-			l.push_back(i);
+			l.push_back(i*v);
 		}
-		dstd::list<int>::iterator b = l.begin();
-		t.testEqual("list::begin 1", *b, 0 );
-		--b;
-		dstd::list<int>::iterator e = l.end();
-		t.testEqual("list::begin 2", b, e);
+		
+		const dstd::list<double> cl(l);
+		
+		t.testEqual("list::begin", *(l.begin()), 0*v );
+		t.testEqual("list::begin const", *(cl.begin()), 0*v );
+		t.testEqual("list::end", *(--(l.end())), (n-1)*v );
+		t.testEqual("list::end const", *(--(cl.end())), (n-1)*v );
+		t.testEqual("list::rbegin", *(l.rbegin()), *(--(l.end())) );
+		t.testEqual("list::rbegin const", *(cl.rbegin()), *(--(cl.end())) );
+		t.testEqual("list::rend", *(--(l.rend())), *(l.begin()) );
+		t.testEqual("list::rend const", *(--(cl.rend())), *(l.begin()) );
+		t.testEqual("list::begin list::end {empty}", empty.begin(), empty.end() );
+		t.testEqual("list::rbegin list::rend {empty}", empty.rbegin(), empty.rend() );
+	}
+	
+	
+	//
+	// Empty
+	
+	
+	t.testEqual("list::empty 1", zero.empty(), true);
+	
+	
+	{
+		const dstd::list<double> l(3, 5.5);
+		t.testEqual("list::empty 2", l.empty(), false);
 	}
 	
 	
@@ -186,6 +232,119 @@ int main()
 		t.testEqual("list::size 1", l1.size(), n1);
 		t.testEqual("list::size 2", l2.size(), n2);
 		t.testEqual("list::size 3", l3.size(), n3);
+	}
+	
+	
+	{
+		const dstd::list<double> l;
+		t.testGreaterThan("list::max_size", l.max_size(), size_t(0));
+	}
+	
+	
+	//
+	// Front & Back
+	
+	
+	{
+		const double v1 = 2.3, v2 = 5.6;
+		dstd::list<double> l;
+		
+		l.push_back(v1);
+		l.push_back(v2);
+		
+		t.testEqual("list::front", l.front(), v1);
+		t.testEqual("list::back", l.back(), v2);
+	}
+	
+	
+	//
+	// Assign
+	
+	
+	{
+		const int n = 10;
+		const double v = 3.3;
+		dstd::list<double> l1, l2, l3, l4;
+		
+		for(int i = 0; i < n; ++i)
+		{
+			l1.push_back(v);
+		}
+		
+		l2.assign(l1.begin(), l1.end());
+		t.testEqual("list::assign(first, last)", l2, l1);
+		
+		l3.assign(n, v);
+		t.testEqual("list::assign(n, v)", l3, l1);
+		
+		l4.assign(0, v);
+		t.testEqual("list::assign(n, v) {empty}", l4, empty);
+	}
+	
+	
+	//
+	// Push Front
+	
+	
+	{
+		const double v1 = 3.14, v2 = 6.66;
+		const size_t n = 3;
+		dstd::list<double> l1(n, v1);
+		const dstd::list<double> l2(1, v2);
+		dstd::list<double> l3;
+		
+		l1.push_front(v2);
+		t.testEqual("list::push_front 1a", l1.size(), n+1);
+		t.testEqual("list::push_front 1b", l1.front(), v2);
+		
+		l3.push_front(v2);
+		t.testEqual("list::push_front 2", l3, l2);
+	}
+	
+	
+	//
+	// Pop Front
+	
+	
+	{
+		const std::string test_name("list::pop_front {empty}");
+		try
+		{
+			zero.pop_front();
+			t.registerTestFailed(test_name, "no exception thrown");
+		}
+		catch( dstd::out_of_range e )
+		{
+			t.registerTestPassed(test_name);
+		}
+		catch(...)
+		{
+			t.registerTestFailed(test_name, "wrong exception thrown");
+		}
+	}
+	
+	
+	{
+		const double v1 = 1., v2 = 2.2;
+		
+		dstd::list<double> l1(2, v2);
+		const dstd::list<double> l2(1, v2);
+		
+		l1.pop_front();
+		t.testEqual("list::pop_front 1a", l1, l2);
+		t.testEqual("list::pop_front 1b", l1.size(), size_t(1));
+		
+		l1.pop_front();
+		t.testEqual("list::pop_front 2", l1, empty);
+		
+		dstd::list<double> l3;
+		l3.push_back(v1);
+		l3.push_back(v2);
+		l3.push_back(v1);
+		
+		l3.pop_front();
+		t.testEqual("list::pop_front 3a", l3.back(), v1);
+		t.testEqual("list::pop_front 3b", l3.front(), v2);
 	}
 	
 	
@@ -219,7 +378,7 @@ int main()
 	
 	
 	{
-		const std::string test_name("list::pop_back");
+		const std::string test_name("list::pop_back {empty}");
 		try
 		{
 			zero.pop_back();
@@ -292,7 +451,24 @@ int main()
 		
 		l2.insert(l2.begin(), n, v);
 		
-		t.testEqual("list::insert(pos, n, val)", l2, l1);
+		t.testEqual("list::insert<double>(pos, n, val)", l2, l1);
+	}
+	
+	
+	{
+		const int v = 3;
+		const int n = 4;
+		
+		dstd::list<int> l1, l2;
+		
+		for(int i = 0; i < n; ++i)
+		{
+			l1.push_back(v);
+		}
+		
+		l2.insert(l2.begin(), n, v);
+		
+		t.testEqual("list::insert<int>(pos, n, val)", l2, l1);
 	}
 	
 	
@@ -366,7 +542,7 @@ int main()
 	
 	
 	{
-		const std::string test_name("list::erase(pos) [empty]");
+		const std::string test_name("list::erase(pos) {empty}");
 		try
 		{
 			zero.erase(zero.begin());
@@ -419,8 +595,8 @@ int main()
 	
 	{
 		dstd::list<double>::iterator it = zero.erase(zero.begin(), zero.end());
-		t.testEqual("list::erase(first, last) [empty]", zero, empty);
-		t.testEqual("list::erase(first, last) [empty] return", it, zero.end());
+		t.testEqual("list::erase(first, last) {empty}", zero, empty);
+		t.testEqual("list::erase(first, last) {empty} return", it, zero.end());
 	}
 	
 	
@@ -469,14 +645,14 @@ int main()
 	{
 		dstd::list<double> l(5, 99.9);
 		zero.swap(l);
-		t.testNotEqual("list::swap [empty] 1", zero, empty);
+		t.testNotEqual("list::swap {empty} 1", zero, empty);
 		zero.swap(l);
-		t.testEqual("list::swap [empty] 2", zero, empty);
+		t.testEqual("list::swap {empty} 2", zero, empty);
 		
 		dstd::list<double> zero_2;
 		zero_2.swap(zero);
-		t.testEqual("list::swap [empty] 3", zero, empty);
-		t.testEqual("list::swap [empty] 4", zero_2, empty);
+		t.testEqual("list::swap {empty} 3", zero, empty);
+		t.testEqual("list::swap {empty} 4", zero_2, empty);
 	}
 	
 	
@@ -501,7 +677,7 @@ int main()
 	
 	
 	zero.resize(0, 9.9);
-	t.testEqual("list::resize [empty]", zero, empty);
+	t.testEqual("list::resize {empty}", zero, empty);
 	
 	
 	{
@@ -537,7 +713,7 @@ int main()
 	
 	
 	zero.clear();
-	t.testEqual("list::clear [empty]", zero, empty);
+	t.testEqual("list::clear {empty}", zero, empty);
 	
 	
 	{
@@ -559,7 +735,7 @@ int main()
 	
 	
 	zero.remove(3);
-	t.testEqual("list::remove [empty]", zero, empty);
+	t.testEqual("list::remove {empty}", zero, empty);
 	
 	
 	{
@@ -576,7 +752,7 @@ int main()
 	
 	
 	zero.remove_if(removeIfTest);
-	t.testEqual("list::remove_if [empty]", zero, empty);
+	t.testEqual("list::remove_if {empty}", zero, empty);
 	
 	
 	{
@@ -605,7 +781,7 @@ int main()
 	
 	
 	zero.unique();
-	t.testEqual("list::unique [empty]", zero, empty);
+	t.testEqual("list::unique {empty}", zero, empty);
 	
 	
 	{
@@ -627,7 +803,7 @@ int main()
 	
 	
 	zero.unique(uniqueTest);
-	t.testEqual("list::unique(binary_pred) [empty]", zero, empty);
+	t.testEqual("list::unique(binary_pred) {empty}", zero, empty);
 	
 	
 	{
@@ -655,7 +831,7 @@ int main()
 	{
 		dstd::list<double> zero_b(zero);
 		zero.merge(zero_b);
-		t.testEqual("list::merge(list) [empty]", zero, empty);
+		t.testEqual("list::merge(list) {empty}", zero, empty);
 	}
 	
 	
@@ -685,7 +861,7 @@ int main()
 	{
 		dstd::list<double> zero_b(zero);
 		zero.merge(zero_b, mergeTest);
-		t.testEqual("list::merge(list, comp) [empty]", zero, empty);
+		t.testEqual("list::merge(list, comp) {empty}", zero, empty);
 	}
 	
 	
@@ -717,7 +893,7 @@ int main()
 	// Reverse
 	
 	zero.reverse();
-	t.testEqual("list::reverse [empty]", zero, empty);
+	t.testEqual("list::reverse {empty}", zero, empty);
 	
 	
 	{
