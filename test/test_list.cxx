@@ -727,7 +727,79 @@ int main()
 	// Splice
 	
 	
-	//////////////////////////////////////////////////
+	{
+		const int n = 3;
+		const double v1 = 4.4, v2 = 5.5;
+		dstd::list<double> l1(n, v1), l2(n, v2);
+		
+		l1.splice(l1.begin(), l2);
+		
+		t.testEqual("list::splice(pos, list) 1a", l1.front(), v2);
+		t.testEqual("list::splice(pos, list) 1b", l2, empty);
+		
+		const dstd::list<double> l3(l1);
+		l1.splice(l1.begin(), zero);
+		
+		t.testEqual("list::splice(pos, list) 2a", l1, l3);
+		t.testEqual("list::splice(pos, list) 2b", zero, empty);
+	}
+	
+	
+	{
+		const int n = 3;
+		
+		dstd::list<int> l1, l2;
+		for(int i = 0; i < 2*n; ++i)
+		{
+			l1.push_back(i);
+			if( i != n ) l2.push_back(i);
+		}
+		const dstd::list<int> cl1(l1), cl2(l2);
+		
+		dstd::list<int>::iterator it1 = l1.begin();
+		while( *it1 != n )
+		{
+			++it1;
+		}
+		
+		dstd::list<int>::iterator it2 = l2.begin();
+		while( *it2 < n )
+		{
+			++it2;
+		}
+		
+		l2.splice(it2, l1, it1);
+		
+		t.testEqual("list::splice(pos, list, i) 1a", l1, cl2);
+		t.testEqual("list::splice(pos, list, i) 1b", l2, cl1);
+	}
+	
+	
+	{
+		const int n = 3;
+		const int v = 99;
+		
+		dstd::list<int> l1, l2;
+		
+		l1.push_back(99);
+		l2.push_back(99);
+		for(int i = 0; i < n; ++i)
+		{
+			l1.push_back(i);
+		}
+		l1.push_back(99);
+		l2.push_back(99);
+		
+		const dstd::list<int> cl1(l1), cl2(l2);
+		
+		dstd::list<int>::iterator first = ++(l1.begin());
+		dstd::list<int>::iterator last = --(l1.end());
+		
+		l2.splice(++(l2.begin()), l1, first, last);
+		
+		t.testEqual("list::splice(pos, list, first, last) 1a", l1, cl2);
+		t.testEqual("list::splice(pos, list, first, last) 1b", l2, cl1);
+	}
 	
 	
 	//

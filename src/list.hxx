@@ -340,9 +340,27 @@ class dstd::list
 		}
 		
 		
-		//void splice (iterator position, list& x);
-		//void splice (iterator position, list& x, iterator i);
-		//void splice (iterator position, list& x, iterator first, iterator last);
+		void splice(iterator position, list& x)
+		{
+			this->splice(position, x, x.begin(), x.end());
+		}
+		
+		
+		void splice (iterator position, list& x, iterator i)
+		{
+			x.unhook(i);
+			this->hook(position, i);
+		}
+		
+		
+		void splice (iterator position, list& x, iterator first, iterator last)
+		{
+			if( first != last )
+			{
+				x.unhook(first, last);
+				this->hook(position, first, last);
+			}
+		}
 		
 		
 		void remove(const value_type& val)
@@ -477,6 +495,64 @@ class dstd::list
 		
 		
 	private:
+		
+		
+		/// Hooks in an existing node to this list
+		/// The user should ensure 'in' is not present in any other lists
+		void hook(iterator position, iterator in)
+		{
+			position.p->prev->next = in.p;
+			in.p->prev = position.p->prev;
+			position.p->prev = in.p;
+			in.p->next = position.p;
+		}
+		
+		
+		/// Hooks in existing nodes [first,last) to this list
+		/// The user should ensure no nodes other than 'last' are in any other lists
+		void hook(iterator position, iterator first, iterator last)
+		{
+			position.p->prev->next = first.p;
+			first.p->prev = position.p->prev;
+			
+			while( first.p->next != last.p )
+			{
+				++first;
+			}
+			
+			position.p->prev = first.p;
+			first.p->next = position.p;
+		}
+		
+		
+		/// Remove a node from this list, without deleting it
+		void unhook(iterator position)
+		{
+			if( position == this->end() )
+			{
+				throw dstd::out_of_range();
+			}
+			
+			node_base* to_unhook( position.p );
+			
+			// Remove from list
+			to_unhook->prev->next = to_unhook->next;
+			to_unhook->next->prev = to_unhook->prev;
+		}
+		
+		
+		/// Remove nodes [first, last) from this list, without deleting them
+		void unhook(iterator first, iterator last)
+		{
+			if( first == this->end() )
+			{
+				throw dstd::out_of_range();
+			}
+			
+			first.p->prev->next = last.p;
+			last.p->prev = first.p->prev;
+		}
+		
 		
 		node_allocator_type a;
 		node_base* n;
