@@ -5,32 +5,32 @@
 
 namespace dstd
 {
-	template <class I> class iterator_traits;
-	template <class I> class reverse_iterator;
+	template <class Iterator> class iterator_traits;
+	template <class Iterator> class reverse_iterator;
 }
 
 
 
-template <class I>
+template <class Iterator>
 class dstd::iterator_traits
 {
 	public:
-	typedef typename I::value_type value_type;
-	typedef typename I::pointer pointer;
-	typedef typename I::reference reference;
+	typedef typename Iterator::value_type value_type;
+	typedef typename Iterator::pointer pointer;
+	typedef typename Iterator::reference reference;
 };
 
 
 
-template <class I>
+template <class Iterator>
 class dstd::reverse_iterator
 {
 	public:
 	
-		typedef I iterator_type;
-		typedef typename iterator_traits<I>::value_type value_type;
-		typedef typename iterator_traits<I>::pointer pointer;
-		typedef typename iterator_traits<I>::pointer reference;
+		typedef Iterator iterator_type;
+		typedef typename iterator_traits< iterator_type >::value_type value_type;
+		typedef typename iterator_traits< iterator_type >::pointer pointer;
+		typedef typename iterator_traits< iterator_type >::reference reference;
 		
 		// Constructors
 		
@@ -41,7 +41,7 @@ class dstd::reverse_iterator
 			this->it = forward_it;
 		}
 		
-		reverse_iterator(const reverse_iterator<I>& reverse_it)
+		reverse_iterator(const reverse_iterator<iterator_type>& reverse_it)
 		{
 			this->it = reverse_it.base();
 		}
@@ -57,7 +57,9 @@ class dstd::reverse_iterator
 		
 		reference operator*()
 		{
-			return *(this->it - 1);
+			iterator_type temp(this->it);
+			--temp;
+			return *temp;
 		}
 		
 		reverse_iterator operator+(const int& n) const
@@ -68,7 +70,7 @@ class dstd::reverse_iterator
 		reverse_iterator& operator++()
 		{
 			--(this->it);
-			return this;
+			return *this;
 		}
 		
 		reverse_iterator operator++(int)
@@ -79,7 +81,7 @@ class dstd::reverse_iterator
 		reverse_iterator& operator+=(int n)
 		{
 			this->it -= n;
-			return this;
+			return *this;
 		}
 		
 		reverse_iterator operator-(const int& n) const
@@ -90,7 +92,7 @@ class dstd::reverse_iterator
 		reverse_iterator& operator--()
 		{
 			++(this->it);
-			return this;
+			return *this;
 		}
 		
 		reverse_iterator operator--(int)
@@ -101,7 +103,7 @@ class dstd::reverse_iterator
 		reverse_iterator& operator-=(int n)
 		{
 			this->it += n;
-			return this;
+			return *this;
 		}
 		
 		pointer operator->()
@@ -111,7 +113,66 @@ class dstd::reverse_iterator
 		
 	private:
 		
-		I it;
+		iterator_type it;
 };
+
+
+
+template <class Iterator>
+bool operator== (const dstd::reverse_iterator<Iterator>& lhs, const dstd::reverse_iterator<Iterator>& rhs)
+{
+	return (lhs.base() == rhs.base());
+}
+
+
+template <class Iterator>
+bool operator!= (const dstd::reverse_iterator<Iterator>& lhs, const dstd::reverse_iterator<Iterator>& rhs)
+{
+	return ! (lhs.base() == rhs.base());
+}
+
+
+template <class Iterator>
+bool operator<  (const dstd::reverse_iterator<Iterator>& lhs, const dstd::reverse_iterator<Iterator>& rhs)
+{
+	return (lhs.base() > rhs.base());
+}
+
+
+template <class Iterator>
+bool operator<= (const dstd::reverse_iterator<Iterator>& lhs, const dstd::reverse_iterator<Iterator>& rhs)
+{
+	return (lhs.base() >= rhs.base());
+}
+
+
+template <class Iterator>
+bool operator>  (const dstd::reverse_iterator<Iterator>& lhs, const dstd::reverse_iterator<Iterator>& rhs)
+{
+	return (lhs.base() < rhs.base());
+}
+
+
+template <class Iterator>
+bool operator>= (const dstd::reverse_iterator<Iterator>& lhs, const dstd::reverse_iterator<Iterator>& rhs)
+{
+	return (lhs.base() <= rhs.base());
+}
+
+
+template <class Iterator>
+dstd::reverse_iterator<Iterator> operator+ (const int n, const dstd::reverse_iterator<Iterator>& rev_it)
+{
+	return (rev_it + n);
+}
+
+
+template <class Iterator>
+unsigned int operator- (const dstd::reverse_iterator<Iterator>& lhs, const dstd::reverse_iterator<Iterator>& rhs)
+{
+	return (rhs.base() - lhs.base());
+}
+
+
 
 #endif
