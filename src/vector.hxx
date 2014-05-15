@@ -7,7 +7,7 @@
 
 #include "dstd.hxx"
 #include "algorithm.hxx"
-#include "allocator.hxx"
+#include "memory.hxx"
 #include "iterator.hxx"
 
 

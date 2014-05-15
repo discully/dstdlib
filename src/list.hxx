@@ -7,7 +7,7 @@
 #include <limits>
 
 #include "dstd.hxx"
-#include "allocator.hxx"
+#include "memory.hxx"
 #include "exception.hxx"
 #include "iterator.hxx"
 

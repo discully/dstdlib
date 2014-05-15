@@ -1,5 +1,5 @@
-#ifndef DSTD_ALLOCATOR_HXX
-#define DSTD_ALLOCATOR_HXX
+#ifndef DSTD_MEMORY_HXX
+#define DSTD_MEMORY_HXX
 
 #include <new>
 
