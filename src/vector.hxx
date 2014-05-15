@@ -12,32 +12,28 @@
 
 namespace dstd
 {
-	template <class T, class A = dstd::allocator<T> > class vector;
-	template <class T> void swap(dstd::vector<T>& a, dstd::vector<T>& b);
+	template <class T, class Allocator > class vector;
+	template <class T, class Allocator > void swap(vector<T, Allocator>& v1, vector<T, Allocator>& v2);
 }
 
 
 
-template < class T, class A >
+//
+// Vector
+
+template < class T, class Allocator = dstd::allocator<T> >
 class dstd::vector
 {
 	public:
 	
 	typedef T value_type;
-	typedef A allocator_type;
+	typedef Allocator allocator_type;
 	typedef typename allocator_type::reference reference;
 	typedef typename allocator_type::const_reference const_reference;
 	typedef typename allocator_type::pointer pointer;
 	typedef typename allocator_type::const_pointer const_pointer;
-	
-	//template <class Pointer, class Reference>
-	//class base_iterator;
 	class iterator;
 	class const_iterator;
-	
-	//typedef base_iterator< pointer, reference > iterator;
-	//typedef base_iterator< const_pointer, const_reference > const_iterator;
-	
 	typedef dstd::reverse_iterator< iterator > reverse_iterator;
 	typedef dstd::reverse_iterator< const_iterator > const_reverse_iterator;
 	
@@ -45,13 +41,13 @@ class dstd::vector
 	//
 	// Constructors
 	
-	
 	explicit vector()
 		: n_data(0), n_memory(0), p(0)
 	{}
 	
 	
-	explicit vector(unsigned int n, const T& value = T()) :n_data(0), n_memory(0), p(0)
+	explicit vector(unsigned int n, const T& value = T())
+		:n_data(0), n_memory(0), p(0)
 	{
 		this->assign(n, value);
 	}
@@ -64,7 +60,7 @@ class dstd::vector
 	}
 	
 	
-	vector(const vector<T>& v)
+	vector(const vector& v)
 		: n_data(0), n_memory(0), p(0)
 	{
 		this->assign<const_iterator>(v.begin(), v.end());
@@ -86,10 +82,10 @@ class dstd::vector
 	// Assignment
 	
 	
-	vector<T>& operator= (const vector<T>& v)
+	vector& operator= (const vector& v)
 	{
 		this->assign(v.begin(), v.end());
-		return this;
+		return *this;
 	}
 	
 	
@@ -149,19 +145,19 @@ class dstd::vector
 	// Capacity
 	
 	
-	unsigned int size() const
+	size_t size() const
 	{
 		return this->n_data;
 	}
 	
 	
-	unsigned int max_size() const
+	size_t max_size() const
 	{
-		return std::numeric_limits<unsigned int>::max();
+		return std::numeric_limits<size_t>::max();
 	}
 	
 	
-	void resize(unsigned int n, const T& value = T())
+	void resize(size_t n, const T& value = T())
 	{
 		if( n < this->size() )
 		{
@@ -170,7 +166,7 @@ class dstd::vector
 		}
 		else if( n > this->size() )
 		{
-			unsigned int n_add = static_cast< unsigned int >( n - this->size() );
+			size_t n_add = n - this->size();
 			for(unsigned int i = 0; i != n_add; ++i)
 			{
 				this->push_back(value);
@@ -179,7 +175,7 @@ class dstd::vector
 	}
 	
 	
-	unsigned int capacity() const
+	size_t capacity() const
 	{
 		return this->n_memory;
 	}
@@ -191,7 +187,7 @@ class dstd::vector
 	}
 	
 	
-	void reserve(unsigned int n)
+	void reserve(size_t n)
 	{
 		// Check if this request is necessary and valid
 		if( n <= this->capacity() ) return;
@@ -235,19 +231,19 @@ class dstd::vector
 	// Element access
 	
 	
-	T& operator[](unsigned int i)
+	reference operator[](size_t i)
 	{
 		return this->p[i];
 	}
 	
 	
-	const T& operator[](unsigned int i) const
+	const_reference operator[](size_t i) const
 	{
 		return this->p[i];
 	}
 	
 	
-	T& at(unsigned int i)
+	reference at(size_t i)
 	{
 		if( i >= this->size() )
 		{
@@ -257,7 +253,7 @@ class dstd::vector
 	}
 	
 	
-	const T& at(unsigned int i) const
+	const_reference at(size_t i) const
 	{
 		if( i >= this->size() )
 		{
@@ -267,19 +263,19 @@ class dstd::vector
 	}
 	
 	
-	T& front()
+	reference front()
 	{
 		return this->p[0];
 	}
 	
 	
-	const T& front() const
+	const_reference front() const
 	{
 		return this->p[0];
 	}
 
 
-	T& back()
+	reference back()
 	{
 		if( this->size() > 0 )
 		{
@@ -292,15 +288,15 @@ class dstd::vector
 	}
 	
 	
-	const T& back() const
+	const_reference back() const
 	{
-		if( this->size() > 0 )
+		if( this->empty() )
 		{
-			return *(this->end() - 1);
+			return this->front();
 		}
 		else
 		{
-			return this->front();
+			return *(this->end() - 1);
 		}
 	}
 	
@@ -323,7 +319,7 @@ class dstd::vector
 	}
 	
 	
-	void assign(unsigned int n, const T& value)
+	void assign(size_t n, const value_type& value)
 	{
 		this->erase(this->begin(), this->end());
 		this->reserve(n);
@@ -335,7 +331,7 @@ class dstd::vector
 	}
 	
 	
-	void push_back(const T& value)
+	void push_back(const value_type& value)
 	{
 		this->insert( this->end(), value );
 	}
@@ -347,9 +343,9 @@ class dstd::vector
 	}
 	
 	
-	iterator insert(iterator position, const T& value)
+	iterator insert(iterator position, const value_type& value)
 	{
-		return this->insert(position, 1U, value);
+		return this->insert(position, 1, value);
 	}
 	
 	
@@ -358,7 +354,7 @@ class dstd::vector
 	// Then type inference allows the letter version to be called when this version is intended, and it breaks.
 	// This is fixed in the GCC STL by checking whether the arguments are integers in the second version, and
 	// calling the correct form of insert.
-	iterator insert(iterator position, unsigned int n, const T& value)
+	iterator insert(iterator position, size_t n, const value_type& value)
 	{
 		if( position > this->end() || position < this->begin() )
 		{
@@ -517,14 +513,13 @@ class dstd::vector
 		this->erase(this->begin(), this->end());
 	}
 	
-		
-		
+	
 	private:
 	
 	allocator_type a;
 	unsigned int n_data;
 	unsigned int n_memory;
-	T* p;
+	pointer p;
 	
 	///// Friends
 	template <class TT>
@@ -533,42 +528,45 @@ class dstd::vector
 
 
 
+//
+// Vector Iterators
+//
+
 template <class T, class Allocator>
 class dstd::vector<T, Allocator>::iterator
 {
 	public:
 		
 		typedef typename dstd::vector<T, Allocator>::value_type value_type;
-		typedef value_type& reference;
-		typedef value_type* pointer;
+		typedef typename dstd::vector<T, Allocator>::reference reference;
+		typedef typename dstd::vector<T, Allocator>::pointer pointer;
 		
-		iterator(pointer ptr = 0) : p(ptr), size(sizeof(T)) {}
-		iterator(const iterator& it) : p( &(*it) ), size(sizeof(T)) {}
+		iterator(pointer ptr = 0) : p(ptr) {}
+		iterator(const iterator& it) : p( it.p ) {}
 		reference operator* () const { return *(this->p); }
 		pointer operator-> () const { return this->p; }
-		iterator& operator=(const iterator& rhs) { this->p = &(*rhs); return *this; }
+		iterator& operator=(const iterator& rhs) { this->p = rhs.p; return *this; }
 		// Operators with int
 		iterator& operator+=(const int& n){ this->p += n; return (*this); }
 		iterator& operator-=(const int& n){ this->p -= n; return (*this); }
 		iterator operator+ (const int& n){ iterator it(*this); it += n; return it; }
 		iterator operator- (const int& n){ iterator it(*this); it -= n; return it; }
 		// Operators with iterators
-		int operator- (const iterator& rhs){ return this->p - &(*rhs); }
+		int operator- (const iterator& rhs){ return this->p - rhs.p; }
 		iterator& operator++() { (*this) += 1; return (*this); }
 		iterator& operator++(int) { iterator temp(*this); ++(*this); return temp; }
 		iterator& operator--() { (*this) -= 1; return (*this); }
 		iterator& operator--(int) { iterator temp(*this); --(*this); return temp; }
-		bool operator==(const iterator& rhs) const { return ( this->p == &(*rhs) ); }
-		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator< (const iterator& rhs) const { return ( this->p < &(*rhs) ); }
-		bool operator> (const iterator& rhs) const { return ( this->p > &(*rhs) ); }
-		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
+		bool operator==(const iterator& rhs) const { return ( this->p == rhs.p ); }
+		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs.p ); }
+		bool operator< (const iterator& rhs) const { return ( this->p < rhs.p ); }
+		bool operator> (const iterator& rhs) const { return ( this->p > rhs.p ); }
+		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs.p ); }
+		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs.p ); }
 	
 	private:
 		
 		T* p;
-		const unsigned int size;
 };
 
 
@@ -579,57 +577,54 @@ class dstd::vector<T, Allocator>::const_iterator
 	public:
 		
 		typedef typename dstd::vector<T, Allocator>::value_type value_type;
-		typedef const value_type& reference;
-		typedef const value_type* pointer;
+		typedef typename dstd::vector<T, Allocator>::const_reference  reference;
+		typedef typename dstd::vector<T, Allocator>::const_pointer  pointer;
 		
-		const_iterator(pointer ptr = 0) : p(ptr), size(sizeof(T)) {}
-		const_iterator(const const_iterator& it) : p( &(*it) ), size(sizeof(T)) {}
+		const_iterator(pointer ptr = 0) : p(ptr) {}
+		const_iterator(const const_iterator& it) : p( it.p ) {}
 		reference operator* () const { return *(this->p); }
 		pointer operator-> () const { return this->p; }
-		const_iterator& operator=(const const_iterator& rhs) { this->p = &(*rhs); return *this; }
-		const_iterator& operator=(const dstd::vector<T, Allocator>::iterator& rhs) { this->p = &(*rhs); return *this; }
+		const_iterator& operator=(const const_iterator& rhs) { this->p = rhs.p; return *this; }
+		const_iterator& operator=(const dstd::vector<T, Allocator>::iterator& rhs) { this->p = rhs.p; return *this; }
 		// Operators with int
 		const_iterator& operator+=(const int& n){ this->p += n; return (*this); }
 		const_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
 		const_iterator operator+ (const int& n){ const_iterator it(*this); it += n; return it; }
 		const_iterator operator- (const int& n){ const_iterator it(*this); it -= n; return it; }
 		// Operators with iterators
-		int operator- (const const_iterator& rhs){ return this->p - &(*rhs); }
+		int operator- (const const_iterator& rhs){ return this->p - rhs.p; }
 		const_iterator& operator++() { (*this) += 1; return (*this); }
 		const_iterator& operator++(int) { const_iterator temp(*this); ++(*this); return temp; }
 		const_iterator& operator--() { (*this) -= 1; return (*this); }
 		const_iterator& operator--(int) { const_iterator temp(*this); --(*this); return temp; }
-		bool operator==(const const_iterator& rhs) const { return ( this->p == &(*rhs) ); }
+		bool operator==(const const_iterator& rhs) const { return ( this->p == rhs.p ); }
 		bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator< (const const_iterator& rhs) const { return ( this->p < &(*rhs) ); }
-		bool operator> (const const_iterator& rhs) const { return ( this->p > &(*rhs) ); }
+		bool operator< (const const_iterator& rhs) const { return ( this->p < rhs.p ); }
+		bool operator> (const const_iterator& rhs) const { return ( this->p > rhs.p ); }
 		bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
 		bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
 	
 	private:
 		
 		pointer p;
-		const unsigned int size;
 };
 
 
 
-template <class T>
-void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
-{
-	T* temp_p = a.p;
-	unsigned int temp_n_data = a.size();
-	unsigned int temp_n_memory = a.capacity();
-	
-	a.p = b.p;
-	a.n_data = b.n_data;
-	a.n_memory = b.n_memory;
-	
-	b.p = temp_p;
-	b.n_data = temp_n_data;
-	b.n_memory = temp_n_memory;
-}
+//
+// Vector Operators
+//
 
+template <class T, class Allocator>
+bool operator== (const dstd::vector<T, Allocator>& v1, const dstd::vector<T, Allocator>& v2)
+{
+	if( v1.size() != v2.size() ) return false;
+	for(unsigned int i = 0; i != v1.size(); ++i)
+	{
+		if( v1[i] != v2[i] ) return false;
+	}
+	return true;
+}
 
 
 // TODO: implement other relational operators between vectors
@@ -648,16 +643,23 @@ void dstd::swap(dstd::vector<T>& a, dstd::vector<T>& b)
 
 
 
-// TODO: re-implement using <algorithm>'s equal function
+//
+// Swap
+
 template <class T, class Allocator>
-bool operator== (const dstd::vector<T, Allocator>& v1, const dstd::vector<T, Allocator>& v2)
+void dstd::swap(dstd::vector<T, Allocator>& v1, dstd::vector<T, Allocator>& v2)
 {
-	if( v1.size() != v2.size() ) return false;
-	for(unsigned int i = 0; i != v1.size(); ++i)
-	{
-		if( v1[i] != v2[i] ) return false;
-	}
-	return true;
+	T* temp_p = v1.p;
+	unsigned int temp_n_data = v1.size();
+	unsigned int temp_n_memory = v1.capacity();
+	
+	v1.p = v2.p;
+	v1.n_data = v2.n_data;
+	v1.n_memory = v2.n_memory;
+	
+	v2.p = temp_p;
+	v2.n_data = temp_n_data;
+	v2.n_memory = temp_n_memory;
 }
 
 
