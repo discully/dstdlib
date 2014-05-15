@@ -5,6 +5,7 @@
 #include <cassert>
 #include <limits>
 
+#include "dstd.hxx"
 #include "allocator.hxx"
 #include "iterator.hxx"
 
@@ -343,18 +344,8 @@ class dstd::vector
 	}
 	
 	
-	iterator insert(iterator position, const value_type& value)
-	{
-		return this->insert(position, 1, value);
-	}
-	
-	
-	// TODO: Broken!!!
-	// This version of insert, and the one which follows it, have a problem when T is of integer types.
-	// Then type inference allows the letter version to be called when this version is intended, and it breaks.
-	// This is fixed in the GCC STL by checking whether the arguments are integers in the second version, and
-	// calling the correct form of insert.
-	iterator insert(iterator position, size_t n, const value_type& value)
+	private:
+	iterator insertFix(iterator position, size_t n, const value_type& value, dstd::impl::TrueType)
 	{
 		if( position > this->end() || position < this->begin() )
 		{
@@ -401,9 +392,8 @@ class dstd::vector
 	}
 	
 	
-	// See note on preceding version of insert about problems due to type conversion
 	template <class InputIterator>
-	iterator insert(iterator position, InputIterator first, InputIterator last)
+	iterator insertFix(iterator position, InputIterator first, InputIterator last, dstd::impl::FalseType)
 	{
 		if( position > this->end() || position < this->begin() )
 		{
@@ -453,6 +443,27 @@ class dstd::vector
 		this->n_data += n;
 		
 		return position;
+	}
+	public:
+	
+	
+	iterator insert(iterator position, const value_type& value)
+	{
+		return this->insertFix(position, 1, value, dstd::impl::TrueType());
+	}
+	
+	
+	void insert(iterator position, size_t n, const value_type& value)
+	{
+		this->insertFix(position, n, value, dstd::impl::TrueType());
+	}
+	
+	
+	template <class InputIterator>
+	void insert(iterator position, InputIterator first, InputIterator last)
+	{
+		typedef typename dstd::impl::BoolType< std::numeric_limits<InputIterator>::is_integer >::bool_type is_integer;
+		this->insertFix( position, first, last, is_integer() );
 	}
 	
 	
