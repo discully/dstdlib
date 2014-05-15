@@ -16,6 +16,7 @@
 namespace dstd
 {
 	template <class T, class Allocator> class list;
+	template <class T, class Allocator> void swap(dstd::list<T,Allocator>& l1, dstd::list<T,Allocator>& l2);
 }
 
 
@@ -634,7 +635,19 @@ class dstd::list<T, Allocator>::iterator
 		}
 		
 		
+		const reference operator*() const
+		{
+			return ( static_cast<node*>(this->p) )->value;
+		}
+		
+		
 		pointer operator->()
+		{
+			return &( ( static_cast<node*>(this->p) )->value );
+		}
+		
+		
+		const pointer operator->() const
 		{
 			return &( ( static_cast<node*>(this->p) )->value );
 		}
@@ -889,6 +902,18 @@ template< class T, class Allocator >
 bool operator>=( const dstd::list<T,Allocator>& lhs, const dstd::list<T,Allocator>& rhs )
 {
 	return ! (lhs < rhs);
+}
+
+
+
+//
+// Swap
+//
+
+template <class T, class Allocator>
+void dstd::swap(dstd::list<T,Allocator>& l1, dstd::list<T,Allocator>& l2)
+{
+	l1.swap(l2);
 }
 
 

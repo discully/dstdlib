@@ -1018,6 +1018,23 @@ int main()
 	}
 	
 	
+	//
+	// Swap
+	
+	
+	{
+		dstd::list<double> a(3, 4.4);
+		dstd::list<double> b(6, 1.2);
+		const dstd::list<double> aa(a);
+		const dstd::list<double> bb(b);
+		
+		dstd::swap(a, b);
+		
+		t.testEqual("swap(list, list) 1", a, bb);
+		t.testEqual("swap(list, list) 1", b, aa);
+	}
+	
+	
 	t.report();
 	return 0;
 }
