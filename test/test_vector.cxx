@@ -235,6 +235,73 @@ int main()
 	t.testEqual< dstd::vector<double> >("clear_value", v, dstd::vector<double>() );
 	
 	
+	//
+	// Vector Operators
+	
+	{
+		dstd::vector<char> abcde, abc, abddd, none;
+		
+		for(char x = 'a'; x != 'f'; ++x)
+		{
+			abcde.push_back(x);
+			if( x != 'd' && x != 'e' ) abc.push_back(x);
+			if( x == 'c' || x == 'e' )
+			{
+				abddd.push_back('d');
+			}
+			else
+			{
+				abddd.push_back(x);
+			}
+		}
+		const dstd::vector<char> ae(abcde);
+		
+		t.testEqual("vector == 1", (abcde == ae   ),  true);
+		t.testEqual("vector == 2", (abcde == abc  ), false);
+		t.testEqual("vector == 3", (abcde == abddd), false);
+		t.testEqual("vector == 4", (abcde == none ), false);
+		
+		t.testEqual("vector != 1", (abcde != ae   ), false);
+		t.testEqual("vector != 2", (abcde != abc  ), true);
+		t.testEqual("vector != 3", (abcde != abddd), true);
+		t.testEqual("vector != 4", (abcde != none ), true);
+		
+		t.testEqual("vector <  1", (abcde <  ae   ), false);
+		t.testEqual("vector <  2", (abcde <  abc  ), false);
+		t.testEqual("vector <  3", (abcde <  abddd), true );
+		t.testEqual("vector <  4", (abcde <  none ), false);
+		
+		t.testEqual("vector <= 1", (abcde <= ae   ), true);
+		t.testEqual("vector <= 2", (abcde <= abc  ), false);
+		t.testEqual("vector <= 3", (abcde <= abddd), true );
+		t.testEqual("vector <= 4", (abcde <= none ), false);
+		
+		t.testEqual("vector >  1", (abcde >  ae   ), false);
+		t.testEqual("vector >  2", (abcde >  abc  ), true);
+		t.testEqual("vector >  3", (abcde >  abddd), false );
+		t.testEqual("vector >  4", (abcde >  none ), true);
+		
+		t.testEqual("vector >= 1", (abcde >= ae   ), true);
+		t.testEqual("vector >= 2", (abcde >= abc  ), true);
+		t.testEqual("vector >= 3", (abcde >= abddd), false );
+		t.testEqual("vector >= 4", (abcde >= none ), true);
+	}
+	
+	
+	//
+	// Swap
+	
+	{
+		dstd::vector<double> a(10, 2.2), b(3, 7.1);
+		const dstd::vector<double> aa(a), bb(b);
+		
+		dstd::swap(a, b);
+		
+		t.testEqual("swap(vector, vector) 1", a, bb);
+		t.testEqual("swap(vector, vector) 2", b, aa);
+	}
+	
+	
 	t.report();
 	
 	
