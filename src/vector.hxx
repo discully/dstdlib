@@ -504,7 +504,17 @@ class dstd::vector
 
 	void swap(vector& v)
 	{
-		dstd::swap(*this, v);
+		pointer temp_p = this->p;
+		size_t temp_n_data = this->size();
+		size_t temp_n_memory = this->capacity();
+		
+		this->p = v.p;
+		this->n_data = v.n_data;
+		this->n_memory = v.n_memory;
+		
+		v.p = temp_p;
+		v.n_data = temp_n_data;
+		v.n_memory = temp_n_memory;
 	}
 	
 	
@@ -520,10 +530,6 @@ class dstd::vector
 	unsigned int n_data;
 	unsigned int n_memory;
 	pointer p;
-	
-	///// Friends
-	template <class TT>
-	friend void dstd::swap(vector<TT>& a, vector<TT>& b);
 };
 
 
@@ -649,17 +655,7 @@ bool operator== (const dstd::vector<T, Allocator>& v1, const dstd::vector<T, All
 template <class T, class Allocator>
 void dstd::swap(dstd::vector<T, Allocator>& v1, dstd::vector<T, Allocator>& v2)
 {
-	T* temp_p = v1.p;
-	unsigned int temp_n_data = v1.size();
-	unsigned int temp_n_memory = v1.capacity();
-	
-	v1.p = v2.p;
-	v1.n_data = v2.n_data;
-	v1.n_memory = v2.n_memory;
-	
-	v2.p = temp_p;
-	v2.n_data = temp_n_data;
-	v2.n_memory = temp_n_memory;
+	v1.swap(v2);
 }
 
 
