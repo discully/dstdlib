@@ -20,6 +20,10 @@ namespace dstd
 
 
 
+//
+// List
+//
+
 template <class T, class Allocator = dstd::allocator<T> >
 class dstd::list
 {
@@ -560,6 +564,10 @@ class dstd::list
 
 
 
+//
+// List Node
+//
+
 template <class T, class Allocator>
 class dstd::list<T, Allocator>::node_base
 {
@@ -588,6 +596,10 @@ class dstd::list<T, Allocator>::node : public dstd::list<T, Allocator>::node_bas
 };
 
 
+
+//
+// List Iterators
+//
 
 template <class T, class Allocator>
 class dstd::list<T, Allocator>::iterator
@@ -701,13 +713,13 @@ class dstd::list<T, Allocator>::const_iterator
 		{}
 		
 		
-		reference operator*()
+		reference operator*() const
 		{
 			return ( static_cast<node*>(this->p) )->value;
 		}
 		
 		
-		pointer operator->()
+		pointer operator->() const
 		{
 			return &( ( static_cast<node*>(this->p) )->value );
 		}
@@ -762,5 +774,122 @@ class dstd::list<T, Allocator>::const_iterator
 	
 	friend class dstd::list<T, Allocator>;
 };
+
+
+
+//
+// List comparison operators
+//
+
+template<class T, class Allocator>
+bool operator==( const dstd::list<T,Allocator>& lhs, const dstd::list<T,Allocator>& rhs )
+{
+	if( lhs.size() != rhs.size() ) return false;
+	typename dstd::list<T>::const_iterator lhs_it = lhs.begin();
+	typename dstd::list<T>::const_iterator rhs_it = rhs.begin();
+	const typename dstd::list<T>::const_iterator lhs_end = lhs.end();
+	const typename dstd::list<T>::const_iterator rhs_end = rhs.end();
+	while( lhs_it != lhs_end && rhs_it != rhs_end )
+	{
+		if( *lhs_it != *rhs_it ) return false;
+		++lhs_it;
+		++rhs_it;
+	}
+	return true;
+}
+
+
+template< class T, class Allocator >
+bool operator!=( const dstd::list<T,Allocator>& lhs, const dstd::list<T,Allocator>& rhs )
+{
+	return ! (lhs == rhs);
+}
+
+
+template< class T, class Allocator >
+bool operator< (const dstd::list<T,Allocator>& lhs, const dstd::list<T,Allocator>& rhs )
+{
+	typename dstd::list<T>::const_iterator lhs_it = lhs.begin();
+	typename dstd::list<T>::const_iterator rhs_it = rhs.begin();
+	const typename dstd::list<T>::const_iterator lhs_end = lhs.end();
+	const typename dstd::list<T>::const_iterator rhs_end = rhs.end();
+	
+	while( lhs_it != lhs_end && rhs_it != rhs_end )
+	{
+		if( *lhs_it < *rhs_it )
+		{
+			return true;
+		}
+		else if( *lhs_it > *rhs_it )
+		{
+			return false;
+		}
+		else
+		{
+			++lhs_it;
+			++rhs_it;
+		}
+	}
+	
+	if( lhs_it == lhs_end && rhs_it != rhs_end )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+template< class T, class Allocator >
+bool operator<=( const dstd::list<T,Allocator>& lhs, const dstd::list<T,Allocator>& rhs )
+{
+	typename dstd::list<T>::const_iterator lhs_it = lhs.begin();
+	typename dstd::list<T>::const_iterator rhs_it = rhs.begin();
+	const typename dstd::list<T>::const_iterator lhs_end = lhs.end();
+	const typename dstd::list<T>::const_iterator rhs_end = rhs.end();
+	
+	while( lhs_it != lhs_end && rhs_it != rhs_end )
+	{
+		if( *lhs_it < *rhs_it )
+		{
+			return true;
+		}
+		else if( *lhs_it > *rhs_it )
+		{
+			return false;
+		}
+		else
+		{
+			++lhs_it;
+			++rhs_it;
+		}
+	}
+	
+	if( lhs_it == lhs_end )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+template< class T, class Allocator >
+bool operator>( const dstd::list<T,Allocator>& lhs, const dstd::list<T,Allocator>& rhs )
+{
+	return ! (lhs <= rhs);
+}
+
+
+template< class T, class Allocator >
+bool operator>=( const dstd::list<T,Allocator>& lhs, const dstd::list<T,Allocator>& rhs )
+{
+	return ! (lhs < rhs);
+}
+
 
 #endif

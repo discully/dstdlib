@@ -37,27 +37,6 @@ std::ostream& operator<<(std::ostream& stream, const typename dstd::list<T>::con
 }
 
 
-template <class T>
-bool operator==(const dstd::list<T>& l1, const dstd::list<T>& l2)
-{
-	if( l1.size() != l2.size() ) return false;
-	typename dstd::list<T>::const_iterator it1 = l1.begin();
-	typename dstd::list<T>::const_iterator it2 = l2.begin();
-	for(; it1 != l1.end(); ++it1, ++it2)
-	{
-		if( *it1 != *it2 ) return false;
-	}
-	return true;
-}
-
-
-template <class T>
-bool operator!=(const dstd::list<T>& l1, const dstd::list<T>& l2)
-{
-	return ! (l1 == l2);
-}
-
-
 //
 // Functions passed to test methods
 
@@ -781,14 +760,14 @@ int main()
 		
 		dstd::list<int> l1, l2;
 		
-		l1.push_back(99);
-		l2.push_back(99);
+		l1.push_back(v);
+		l2.push_back(v);
 		for(int i = 0; i < n; ++i)
 		{
 			l1.push_back(i);
 		}
-		l1.push_back(99);
-		l2.push_back(99);
+		l1.push_back(v);
+		l2.push_back(v);
 		
 		const dstd::list<int> cl1(l1), cl2(l2);
 		
@@ -979,6 +958,63 @@ int main()
 		}
 		bwd.reverse();
 		t.testEqual("list::reverse", fwd, bwd);
+	}
+	
+	
+	//
+	// Comparison
+	
+	
+	{
+		dstd::list<char> abcde;
+		dstd::list<char> abddd;
+		dstd::list<char> abc;
+		for(char x = 'a'; x != 'f'; ++x)
+		{
+			abcde.push_back(x);
+			if( x != 'd' && x != 'e' ) abc.push_back(x);
+			if( x == 'c' || x == 'e' )
+			{
+				abddd.push_back('d');
+			}
+			else
+			{
+				abddd.push_back(x);
+			}
+		}
+		const dstd::list<char> ae( abcde );
+		const dstd::list<char> ad( abcde );
+		const dstd::list<char> none;
+		
+		t.testEqual("list == 1", (abcde == ae),    true);
+		t.testEqual("list == 2", (abcde == abc),   false);
+		t.testEqual("list == 3", (abcde == abddd), false);
+		t.testEqual("list == 4", (abcde == none),  false);
+		
+		t.testEqual("list != 1", (abcde != ae),    false);
+		t.testEqual("list != 2", (abcde != abc),   true);
+		t.testEqual("list != 3", (abcde != abddd), true);
+		t.testEqual("list != 4", (abcde != none),  true);
+		
+		t.testEqual("list <  1", (abcde <  ae),    false);
+		t.testEqual("list <  2", (abcde <  abc),   false);
+		t.testEqual("list <  3", (abcde <  abddd), true);
+		t.testEqual("list <  4", (abcde <  none),  false);
+		
+		t.testEqual("list <= 1", (abcde <= ae),    true);
+		t.testEqual("list <= 2", (abcde <= abc),   false);
+		t.testEqual("list <= 3", (abcde <= abddd), true);
+		t.testEqual("list <= 4", (abcde <= none),  false);
+		
+		t.testEqual("list >  1", (abcde >  ae),    false);
+		t.testEqual("list >  2", (abcde >  abc),   true);
+		t.testEqual("list >  3", (abcde >  abddd), false);
+		t.testEqual("list >  4", (abcde >  none),  true);
+		
+		t.testEqual("list >= 1", (abcde >= ae),    true);
+		t.testEqual("list >= 2", (abcde >= abc),   true);
+		t.testEqual("list >= 3", (abcde >= abddd), false);
+		t.testEqual("list >= 4", (abcde >= none),  true);
 	}
 	
 	
