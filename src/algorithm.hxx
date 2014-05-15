@@ -3,6 +3,10 @@
 
 
 
+namespace dstd
+{
+
+
 //
 //Non-modifying sequence operations
 //
@@ -170,14 +174,38 @@
 
 
 
-//
-// Min/max
-//
-
-//min
-//Return the smallest (function template )
-//max
-//Return the largest (function template )
+	//
+	// Min/max
+	//
+	
+	template <class T>
+	const T& min(const T& a, const T& b)
+	{
+		return (b < a) ? b : a;
+	}
+	
+	
+	template <class T, class Compare>
+	const T& min(const T& a, const T& b, Compare comp)
+	{
+		return comp(b, a) ? b : a;
+	}
+	
+	
+	template <class T>
+	const T& max(const T& a, const T& b)
+	{
+		return (a < b) ? b : a;
+	}
+	
+	
+	template <class T, class Compare>
+	const T& max(const T& a, const T& b, Compare comp)
+	{
+		return comp(a, b) ? b : a;
+	}
+	
+	
 //min_element
 //Return smallest element in range (function template )
 //max_element
@@ -195,6 +223,10 @@
 //Transform range to next permutation (function template )
 //prev_permutation
 //Transform range to previous permutation (function template )
+
+
+}
+
 
 
 #endif
