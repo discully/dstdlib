@@ -6,6 +6,7 @@
 #include <limits>
 
 #include "dstd.hxx"
+#include "algorithm.hxx"
 #include "allocator.hxx"
 #include "iterator.hxx"
 
@@ -309,26 +310,30 @@ class dstd::vector
 	template <class InputIterator>
 	void assign(InputIterator first, InputIterator last)
 	{
-		this->erase(this->begin(), this->end());
-		this->reserve( last - first );
-		InputIterator it_from = first;
-		while( it_from < last )
-		{
-			this->push_back( *it_from );
-			++it_from;
-		}
+		//this->erase(this->begin(), this->end());
+		//this->reserve( last - first );
+		//InputIterator it_from = first;
+		//while( it_from < last )
+		//{
+		//	this->push_back( *it_from );
+		//	++it_from;
+		//}
+		this->clear();
+		this->insert(this->begin(), first, last);
 	}
 	
 	
 	void assign(size_t n, const value_type& value)
 	{
-		this->erase(this->begin(), this->end());
-		this->reserve(n);
-		for(unsigned int i = 0; i != n; ++i)
-		{
-			this->p[i] = value;
-			++(this->n_data);
-		}
+		//this->erase(this->begin(), this->end());
+		//this->reserve(n);
+		//for(unsigned int i = 0; i != n; ++i)
+		//{
+		//	this->p[i] = value;
+		//	++(this->n_data);
+		//}
+		this->clear();
+		this->insert(this->begin(), n, value);
 	}
 	
 	
@@ -644,19 +649,85 @@ bool operator== (const dstd::vector<T, Allocator>& v1, const dstd::vector<T, All
 }
 
 
-// TODO: implement other relational operators between vectors
-// template <class T, class Alloc>
-//   bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
-// template <class T, class Alloc>
-//   bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
-// template <class T, class Alloc>
-//   bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
-// template <class T, class Alloc>
-//   bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
-// template <class T, class Alloc>
-//   bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
-// template <class T, class Alloc>
-//   bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+template <class T, class Allocator>
+bool operator!= (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allocator>& rhs)
+{
+	return ! (lhs == rhs);
+}
+
+
+template <class T, class Allocator>
+bool operator< (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allocator>& rhs)
+{
+	size_t n = dstd::min(lhs.size(), rhs.size());
+	
+	for(unsigned int i = 0; i < n; ++i)
+	{
+		if( lhs[i] < rhs[i] )
+		{
+			return true;
+		}
+		else if( rhs[i] < rhs[i] )
+		{
+			return false;
+		}
+	}
+	
+	if( lhs.size() == rhs.size() )
+	{
+		return false; // they vectors are equal
+	}
+	else if( lhs.size() < rhs.size() )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+template <class T, class Allocator>
+bool operator<= (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allocator>& rhs)
+{
+	size_t n = dstd::min(lhs.size(), rhs.size());
+	
+	for(unsigned int i = 0; i < n; ++i)
+	{
+		if( lhs[i] < rhs[i] )
+		{
+			return true;
+		}
+		else if( rhs[i] < rhs[i] )
+		{
+			return false;
+		}
+	}
+	
+	if( lhs.size() <= rhs.size() )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+template <class T, class Allocator>
+bool operator> (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allocator>& rhs)
+{
+	return ! (lhs <= rhs);
+}
+
+
+template <class T, class Allocator>
+bool operator>= (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allocator>& rhs)
+{
+	return ! (lhs < rhs);
+}
 
 
 
