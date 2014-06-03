@@ -2,6 +2,7 @@
 
 #include "../exception.hxx"
 
+#include <iostream>
 
 
 using namespace dstd::impl;
@@ -16,7 +17,12 @@ void binary_search_tree::insert(node* new_node, node* parent_node, bool to_left)
 {
 	if( parent_node == 0 )
 	{
-		if( this->root() != 0 ) throw dstd::out_of_range();
+		if( this->root() != 0 )
+		{
+			std::cerr << "Attempt to add first node to non-empty tree" << std::endl;
+			throw dstd::out_of_range();
+			 
+		}
 		
 		this->header->up = new_node;
 		this->header->l = new_node;
@@ -29,7 +35,11 @@ void binary_search_tree::insert(node* new_node, node* parent_node, bool to_left)
 	{
 		if( to_left )
 		{
-			if( ! this->is_null( parent_node->left() ) ) throw dstd::out_of_range();
+			if( ! this->is_null( parent_node->left() ) )
+			{
+				std::cerr << "Parent node has valid left " << parent_node->left() << std::endl;
+				throw dstd::out_of_range();
+			}
 			parent_node->l = new_node;
 			if( this->smallest() == parent_node )
 			{
@@ -39,7 +49,12 @@ void binary_search_tree::insert(node* new_node, node* parent_node, bool to_left)
 		}
 		else
 		{
-			if( ! this->is_null( parent_node->right() ) ) throw dstd::out_of_range();
+			if( ! this->is_null( parent_node->right() ) )
+			{
+				std::cerr << "Parent node has valid right " << parent_node->right() << std::endl;
+				std::cerr << this->root() << std::endl;
+				throw dstd::out_of_range();
+			}
 			parent_node->r = new_node;
 			if( this->largest() == parent_node )
 			{
@@ -127,9 +142,31 @@ void binary_search_tree::remove(node* n)
 		}
 		
 		// n could be root, smallest or largest
+		if( this->smallest() == n )
+		{
+			if( this->root() == n )
+			{
+				this->header->r = replacement;
+			}
+			else
+			{
+				this->header->r = parent;
+			}
+		}
+		
+		if( this->largest()  == n )
+		{
+			if( this->root() == n )
+			{
+				this->header->l = replacement;
+			}
+			else
+			{
+				this->header->l = parent;
+			}
+		}
+		
 		if( this->root() == n ) this->header->up = replacement;
-		if( this->smallest() == n ) this->header->r = parent;
-		if( this->largest()  == n ) this->header->l = parent;
 		
 		--(this->n);
 	}
@@ -141,9 +178,9 @@ void binary_search_tree::remove(node* n)
 // Node
 
 
-binary_search_tree::node* binary_search_tree::node::next()
+const binary_search_tree::node* binary_search_tree::node::next_node() const
 {
-	node* n = this;
+	const node* n = this;
 	if( n->r != 0 )
 	{
 		if( n->r->l == n )
@@ -191,9 +228,22 @@ binary_search_tree::node* binary_search_tree::node::predecessor()
 }
 
 
-binary_search_tree::node* binary_search_tree::node::prev()
+const binary_search_tree::node* binary_search_tree::node::predecessor() const
 {
-	node* n = this;
+	if( this->l == 0 || this->l->r == this ) return 0;
+	
+	const binary_search_tree::node* p = this->l;
+	while( p->r != 0 )
+	{
+		p = p->r;
+	}
+	return p;
+}
+
+
+const binary_search_tree::node* binary_search_tree::node::prev_node() const
+{
+	const node* n = this;
 	if( n->l != 0 )
 	{
 		if( n->l->r == n )
@@ -229,6 +279,19 @@ binary_search_tree::node* binary_search_tree::node::prev()
 
 
 binary_search_tree::node* binary_search_tree::node::successor()
+{
+	if( this->r == 0 || this->r->l == this ) return 0;
+	
+	binary_search_tree::node* p = this->r;
+	while( p->l != 0 )
+	{
+		p = p->l;
+	}
+	return p;
+}
+
+
+const binary_search_tree::node* binary_search_tree::node::successor() const
 {
 	if( this->r == 0 || this->r->l == this ) return 0;
 	

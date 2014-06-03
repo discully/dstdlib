@@ -4,6 +4,7 @@
 
 
 #include <cstdlib>
+#include <iostream>
 
 
 
@@ -53,8 +54,8 @@ class dstd::impl::binary_search_tree
 				/// Returns the next node in-order.
 				/// @returns A pointer to the next in-order node, unless this is the largest
 				/// node in the tree in which case it returns the header node.
-				node* next();
-				const node* next() const { return const_cast<const node*>(this->next()); }
+				node* next() { return const_cast<node*>( this->next_node() ); }
+				const node* next() const { return this->next_node(); }
 				
 				/// Returns this node's parent-node.
 				/// @returns A pointer to the parent node, unless this is the root node
@@ -65,13 +66,13 @@ class dstd::impl::binary_search_tree
 				/// Returns this node's in-order predecessor.
 				/// @returns a pointer to the node's in-order predecessor, or 0 if node is the smallest in its subtree.
 				node* predecessor();
-				const node* predecessor() const { return const_cast<const node*>(this->predecessor()); }
+				const node* predecessor() const;
 				
 				/// Returns the previous node in-order.
 				/// @returns A pointer to the previous in-order node, unless this is the smallest
 				/// node in the tree in which case it returns the header node.
-				node* prev();
-				const node* prev() const { return const_cast<const node*>(this->prev()); }
+				node* prev() { return const_cast< node* >( this->prev_node() ); }
+				const node* prev() const { return this->prev_node(); }
 				
 				/// Returns this node's right-child node.
 				/// @returns A pointer to this node's right-child, the header node if this
@@ -82,10 +83,13 @@ class dstd::impl::binary_search_tree
 				/// Returns the node's in-order successor.
 				/// @returns a pointer to the node's in-order predecessor, or 0 if node is the largest in its subtree.
 				node* successor();
-				const node* successor() const { return const_cast<const node*>(this->successor()); }
+				const node* successor() const;
 			
 			
 			private:
+				
+				const node* next_node() const;
+				const node* prev_node() const;
 				
 				/// Pointer to this node's parent-node, or 0 if it is the root node.
 				node* up;
@@ -104,28 +108,52 @@ class dstd::impl::binary_search_tree
 		
 		binary_search_tree()
 			: header(new node(0,0,0)), n(0)
-		{}
+		{
+			this->header->l = this->header;
+			this->header->r = this->header;
+		}
 		
+		
+		bool empty() const { return (this->header->up == 0); }
+		
+		
+		node* head() { return this->header; }
 		const node* head() const { return this->header; }
+		
+		
 		void insert(node* new_node, node* parent_node = 0, bool to_left = true);
+		
+		
 		void insert_left(node* new_node, node* parent_node) { this->insert(new_node, parent_node, true); }
+		
+		
 		void insert_right(node* new_node, node* parent_node) { this->insert(new_node, parent_node, false); }
+		
+		
 		bool is_null(node* n) { return (n == 0 || n == this->header); }
+		
+		
 		node* largest() { return this->header->l; }
+		
+		
 		const node* largest() const { return this->header->l; }
+		
 		
 		/// Remove a node from the tree's structure.
 		/// @param n Pointer to the node to be removed.
 		/// @throws dstd::out_of_range if n is 0 or the header.
 		void remove(node* n);
 		
+		
 		/// Returns the left-most node in the tree.
 		/// @returns pointer to the left-most node in the tree, of 0 is the tree is empty
 		node* smallest() { return this->header->r; }
 		const node* smallest() const { return this->header->r; }
 		
+		
 		node* root() { return this->header->up; }
 		const node* root() const { return this->header->up; }
+		
 		
 		size_t size() const { return this->n; }
 		
