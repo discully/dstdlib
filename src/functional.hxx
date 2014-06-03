@@ -17,10 +17,12 @@ namespace dstd
 	template <class T>
 	class less
 	{
-		bool operator() (const T& a, const T& b)
-		{
-			return (a < b);
-		}
+		public:
+		
+			bool operator() (const T& a, const T& b) const
+			{
+				return (a < b);
+			}
 	};
 	
 	
