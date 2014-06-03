@@ -126,9 +126,11 @@ template <class T1, class T2> dstd::pair<T1, T2> dstd::make_pair(const T1& a, co
 //
 // swap
 
-template <class T> void dstd::swap(const T& a, const T& b)
+
+template <class T>
+void dstd::swap(T& a, T& b)
 {
-	const T temp = a;
+	T temp = a;
 	a = b;
 	b = temp;
 }
