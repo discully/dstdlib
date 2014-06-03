@@ -41,7 +41,8 @@ class dstd::reverse_iterator
 			this->it = forward_it;
 		}
 		
-		reverse_iterator(const reverse_iterator<iterator_type>& reverse_it)
+		template <class Iter>
+		reverse_iterator(const reverse_iterator<Iter>& reverse_it)
 		{
 			this->it = reverse_it.base();
 		}
@@ -108,7 +109,7 @@ class dstd::reverse_iterator
 		
 		pointer operator->()
 		{
-			return &(*this);
+			return &(*(*this));
 		}
 		
 	private:
