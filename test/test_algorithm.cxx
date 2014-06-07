@@ -2,6 +2,7 @@
 #include <string>
 #include "tester.hxx"
 #include "../src/algorithm.hxx"
+#include "../src/vector.hxx"
 
 
 
@@ -24,7 +25,6 @@ int main()
 	
 	
 	{
-		const double a = 1.1, b = 2.2;
 		const int a = 4, b = 5, c = 6;
 		
 		t.testEqual("min 1a", dstd::min(a,b), a);
@@ -38,6 +38,22 @@ int main()
 		t.testEqual("max 2a", dstd::max(a, b, oddLessThan), a);
 		t.testEqual("max 2b", dstd::max(a, c, oddLessThan), c);
 		t.testEqual("max 2c", dstd::max(b, c, oddLessThan), c);
+		
+		dstd::vector<int> v;
+		v.push_back(b);
+		v.push_back(a);
+		v.push_back(c);
+		const dstd::vector<int> empty;
+		
+		t.testEqual("min_element 1", *(dstd::min_element(v.begin(), v.end())), a);
+		t.testEqual("min_element 2", *(dstd::min_element(v.begin(), v.end(), oddLessThan)), b);
+		t.testEqual("min_element 3", dstd::min_element(empty.begin(), empty.end()), empty.end());
+		t.testEqual("min_element 4", dstd::min_element(empty.begin(), empty.end(), oddLessThan), empty.end());
+		
+		t.testEqual("max_element 1", *(dstd::max_element(v.begin(), v.end())), c);
+		t.testEqual("max_element 2", *(dstd::max_element(v.begin(), v.end(), oddLessThan)), c);
+		t.testEqual("max_element 3", dstd::max_element(empty.begin(), empty.end()), empty.end());
+		t.testEqual("max_element 4", dstd::max_element(empty.begin(), empty.end(), oddLessThan), empty.end());
 	}
 	
 	

@@ -206,10 +206,60 @@ namespace dstd
 	}
 	
 	
-//min_element
-//Return smallest element in range (function template )
-//max_element
-//Return largest element in range (function template )
+	/// Return smallest element in range
+	template <class ForwardIterator>
+	ForwardIterator min_element(ForwardIterator first, ForwardIterator last)
+	{
+		ForwardIterator min = first;
+		while(first != last)
+		{
+			if( *first < *min ) min = first;
+			++first;
+		}
+		return min;
+	}
+	
+	
+	/// Return smallest element in range
+	template <class ForwardIterator, class Compare>
+	ForwardIterator min_element(ForwardIterator first, ForwardIterator last, Compare comp)
+	{
+		ForwardIterator min = first;
+		while(first != last)
+		{
+			if( comp(*first, *min) ) min = first;
+			++first;
+		}
+		return min;
+	}
+	
+	
+	///Return largest element in range
+	template <class ForwardIterator>
+	ForwardIterator max_element(ForwardIterator first, ForwardIterator last)
+	{
+		ForwardIterator max = first;
+		while(first != last)
+		{
+			if( *max < *first ) max = first;
+			++first;
+		}
+		return max;
+	}
+	
+	
+	/// Return largest element in range
+	template <class ForwardIterator, class Compare>
+	ForwardIterator max_element(ForwardIterator first, ForwardIterator last, Compare comp)
+	{
+		ForwardIterator max = first;
+		while(first != last)
+		{
+			if( comp(*max, *first) ) max = first;
+			++first;
+		}
+		return max;
+	}
 
 
 
