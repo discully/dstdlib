@@ -7,7 +7,7 @@ namespace dstd
 {
 	template <class T1, class T2> class pair;
 	template <class T1, class T2> pair<T1, T2> make_pair(const T1& a, const T2& b);
-	template <class T> void swap(const T& a, const T& b);
+	template <class T> void swap(T& a, T& b);
 	
 	namespace rel_ops
 	{
