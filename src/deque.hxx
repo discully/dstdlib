@@ -463,7 +463,7 @@ class dstd::deque
 		}
 		
 		
-		/// Removes elements in the range (first,last] from the deque.
+		/// Removes elements in the range [first,last) from the deque.
 		/// @returns An iterator pointing to the new location of the element that followed the last element erased by the function call. This is the container end if the operation erased the last element in the sequence.
 		iterator erase(iterator first, iterator last)
 		{
