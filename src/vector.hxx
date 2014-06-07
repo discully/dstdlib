@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <cstddef>
 
 #include "dstd.hxx"
 #include "algorithm.hxx"
