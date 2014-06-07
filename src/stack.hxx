@@ -31,10 +31,16 @@ class dstd::stack
 		
 		typedef T value_type;
 		typedef Container container_type;
-		typedef size_t size_type;
+		typedef typename Container::size_type size_type;
+		typedef typename Container::reference reference;
+		typedef typename Container::const_reference const_reference;
 		
 		explicit stack(const container_type& container = container_type())
 			: c(container)
+		{}
+		
+		stack(const stack& x)
+			: c(x.c)
 		{}
 		
 		~stack(){}
@@ -55,12 +61,12 @@ class dstd::stack
 			return this->c.size();
 		}
 		
-		value_type& top()
+		reference top()
 		{
 			return this->c.back();
 		}
 		
-		const value_type& top() const
+		const_reference top() const
 		{
 			return this->c.back();
 		}
