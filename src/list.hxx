@@ -36,6 +36,8 @@ class dstd::list
 		typedef typename allocator_type::const_reference const_reference;
 		typedef typename allocator_type::pointer pointer;
 		typedef typename allocator_type::const_pointer const_pointer;
+		typedef size_t size_type;
+		typedef ptrdiff_t difference_type;
 		class iterator;
 		class const_iterator;
 		typedef dstd::reverse_iterator<iterator> reverse_iterator;
