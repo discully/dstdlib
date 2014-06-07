@@ -26,7 +26,7 @@ void testStack(dstd::Tester& t)
 	// constructor
 	
 	{
-		const std::string test_name = "stack::stack";
+		const std::string test_name = "stack::stack()";
 		try
 		{
 			istack();
@@ -37,6 +37,16 @@ void testStack(dstd::Tester& t)
 			t.registerTestFailed(test_name, "an exception was thrown");
 		}
 	}
+	
+	// copy
+	
+	{
+		istack is1;
+		is1.push(3);
+		const istack is2(is1);
+		t.testEqual("stack::stack(stack)", is1, is2);
+	}
+	
 	
 	
 	// operator=
