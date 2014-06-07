@@ -14,6 +14,15 @@ bool oddLessThan(const int& a, const int& b) // sort such that odd numbers come 
 }
 
 
+class IntSummation
+{
+	public:
+		IntSummation() : n(0) {}
+		void operator() (int i) { this->n += i; }
+		int n;
+};
+
+
 
 int main()
 {
@@ -21,8 +30,29 @@ int main()
 	
 	
 	//
-	// Min/max
+	//Non-modifying sequence operations
+	//
 	
+	// for_each
+	{
+		int sum = 0;
+		dstd::vector<int> v;
+		for(int i = 0; i < 10; ++i)
+		{
+			sum += i;
+			v.push_back(i);
+		}
+		
+		IntSummation s = dstd::for_each(v.begin(), v.end(), IntSummation());
+		t.testEqual("for_each 1", s.n, sum);
+		
+		s = dstd::for_each(v.begin(), v.begin(), IntSummation());
+		t.testEqual("for_each 2", s.n, 0);
+	}
+	
+	
+	//
+	// Min/max
 	
 	{
 		const int a = 4, b = 5, c = 6;

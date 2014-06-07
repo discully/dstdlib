@@ -5,14 +5,21 @@
 
 namespace dstd
 {
+	//
+	//Non-modifying sequence operations
+	//
 
+	template <class ForwardIterator, class UnaryFunction>
+	UnaryFunction for_each(ForwardIterator first, ForwardIterator last, UnaryFunction f)
+	{
+		while(first != last)
+		{
+			f( *first );
+			++first;
+		}
+		return f;
+	}
 
-//
-//Non-modifying sequence operations
-//
-
-//for_each
-//Apply function to range (function template )
 //find
 //Find value in range (function template )
 //find_if
