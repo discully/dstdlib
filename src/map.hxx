@@ -1004,11 +1004,7 @@ class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		/// Exchanges the content of the container by the content of x, which is another map of the same type.
 		void swap(map& x)
 		{
-			// TODO: why doesn't this work? Get linker error
-			//dstd::swap( this->tree, x.tree );
-			typename map_base::tree_type* temp = this->tree;
-			this->tree = x.tree;
-			x.tree = temp;
+			dstd::swap( this->tree, x.tree );
 		}
 		
 		
