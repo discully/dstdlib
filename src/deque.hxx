@@ -104,6 +104,7 @@ class dstd::deque
 		deque& operator= (const deque& x)
 		{
 			this->assign(x.begin(),x.end());
+			return *this;
 		}
 		
 		

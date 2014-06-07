@@ -98,6 +98,7 @@ class dstd::list
 		list& operator= (const list& x)
 		{
 			this->assign(x.begin(), x.end());
+			return *this;
 		}
 		
 		
