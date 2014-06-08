@@ -36,7 +36,7 @@ class dstd::vector
 	typedef typename allocator_type::pointer pointer;
 	typedef typename allocator_type::const_pointer const_pointer;
 	typedef size_t size_type;
-	typedef ptrdiff_t dfference_type;
+	typedef ptrdiff_t difference_type;
 	class iterator;
 	class const_iterator;
 	typedef dstd::reverse_iterator< iterator > reverse_iterator;
@@ -565,6 +565,8 @@ class dstd::vector<T, Allocator>::iterator
 		typedef typename dstd::vector<T, Allocator>::value_type value_type;
 		typedef typename dstd::vector<T, Allocator>::reference reference;
 		typedef typename dstd::vector<T, Allocator>::pointer pointer;
+		typedef typename dstd::vector<T, Allocator>::size_type size_type;
+		typedef typename dstd::vector<T, Allocator>::difference_type difference_type;
 		
 		iterator(pointer ptr = 0) : p(ptr) {}
 		iterator(const iterator& it) : p( it.p ) {}
@@ -604,6 +606,8 @@ class dstd::vector<T, Allocator>::const_iterator
 		typedef typename dstd::vector<T, Allocator>::value_type value_type;
 		typedef typename dstd::vector<T, Allocator>::const_reference  reference;
 		typedef typename dstd::vector<T, Allocator>::const_pointer  pointer;
+		typedef typename dstd::vector<T, Allocator>::size_type size_type;
+		typedef typename dstd::vector<T, Allocator>::difference_type difference_type;
 		
 		const_iterator(pointer ptr = 0) : p(ptr) {}
 		const_iterator(const const_iterator& it) : p( it.p ) {}
