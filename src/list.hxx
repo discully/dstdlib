@@ -3,7 +3,7 @@
 
 
 
-#include <cstdlib> // size_t
+#include <cstddef>
 #include <limits>
 
 #include "dstd.hxx"
