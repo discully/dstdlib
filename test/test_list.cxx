@@ -1035,6 +1035,44 @@ int main()
 	}
 	
 	
+	//
+	// Iterators
+	
+	{
+		dstd::list<int> a;
+		for(int i = 0; i < 10; ++i)
+		{
+			a.push_back(i);
+		}
+		
+		{
+			dstd::list<int>::iterator it( a.begin() );
+			dstd::list<int>::const_iterator cit( a.begin() );
+		}
+		{
+			dstd::list<int>::iterator it = a.begin();
+			dstd::list<int>::const_iterator cit = a.begin();
+			++it;
+			++cit;
+		}
+		{
+			dstd::list<int>::iterator it = a.begin();
+			dstd::list<int>::const_iterator cit_1 = it;
+			dstd::list<int>::const_iterator cit_2( it );
+			++it;
+			++cit_1;
+			++cit_2;
+		}
+		
+		dstd::list<int>::iterator it = a.begin();
+		dstd::list<int>::const_iterator cit = a.begin();
+		
+		t.testEqual("list::iterator == list::const_iterator", (it == cit), true);
+		t.testEqual("list::const_iterator == list::iterator", (cit == it), true);
+		t.testEqual("list::iterator != list::const_iterator", (it != cit), false);
+		t.testEqual("list::const_iterator != list::iterator", (cit != it), false);
+	}
+	
 	t.report();
 	return 0;
 }

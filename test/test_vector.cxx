@@ -90,7 +90,7 @@ int main()
 	
 	// unsigned int size() const;
 	
-	t.testEqual<unsigned int>("size", v.size(), 99 );
+	t.testEqual<unsigned int>("size", v.size(), size_t(99) );
 	
 	// unsigned int max_size() const;
 	
@@ -100,7 +100,7 @@ int main()
 	{
 		dstd::vector<double> v_temp(v);
 		v_temp.resize(200, pi);
-		t.testEqual<unsigned int>("resize_size",   v_temp.size(), 200 );
+		t.testEqual<unsigned int>("resize_size",   v_temp.size(), size_t(200) );
 		t.testEqual<double>("resize_compate", v_temp.at(10), v.at(10) );
 		t.testEqual<double>("resize_at(136)", v_temp.at(136), pi );
 	}
@@ -139,7 +139,7 @@ int main()
 	{
 		dstd::vector<double> v_temp;
 		v_temp.assign(10, pi);
-		t.testEqual< unsigned int >("assign_size",  v_temp.size(), 10);
+		t.testEqual< unsigned int >("assign_size",  v_temp.size(), size_t(10));
 		t.testEqual< double >("assign_value", v_temp.at(4),  pi);
 	}
 	
@@ -164,7 +164,7 @@ int main()
 		
 		dstd::vector<double>::iterator it = v_temp.begin() + 50;
 		v_temp.insert(it, 0.0);
-		t.testEqual<unsigned int>("insert_it_size", v_temp.size(), 101);
+		t.testEqual<unsigned int>("insert_it_size", v_temp.size(), size_t(101));
 		t.testEqual<double>("insert_it_at", v_temp.at(50), 0.0);
 	}
 	
@@ -175,7 +175,7 @@ int main()
 		
 		dstd::vector<double>::iterator it = v_temp.begin() + 50;
 		v_temp.insert(it, 10, 0.0);
-		t.testEqual<unsigned int>("insert_itN_size", v_temp.size(), 110);
+		t.testEqual<unsigned int>("insert_itN_size", v_temp.size(), size_t(110));
 		t.testEqual<double>("insert_itN_at1", v_temp.at(59), 0.0);
 		t.testEqual<double>("insert_itN_at2", v_temp.at(60), pi);
 	}
@@ -195,7 +195,7 @@ int main()
 			v_temp.push_back(i);
 		}
 		v_temp.erase( v_temp.begin() + 1 );
-		t.testEqual<unsigned int>("erase_it", v_temp.size(), 2);
+		t.testEqual<unsigned int>("erase_it", v_temp.size(), size_t(2));
 		t.testEqual<int>("erase_it_at0", v_temp.at(0), 0);
 		t.testEqual<int>("erase_it_at1", v_temp.at(1), 2);
 	}
@@ -208,7 +208,7 @@ int main()
 			v_temp.push_back(i);
 		}
 		v_temp.erase(v_temp.begin() + 1, v_temp.begin() + 3);
-		t.testEqual<unsigned int>("erase_itit", v_temp.size(), 2);
+		t.testEqual<unsigned int>("erase_itit", v_temp.size(), size_t(2));
 		t.testEqual<int>("erase_itit_at0", v_temp.at(0), 0);
 		t.testEqual<int>("erase_itit_at1", v_temp.at(1), 3);
 	}
@@ -231,7 +231,7 @@ int main()
 	
 	//void clear();
 	v.clear();
-	t.testEqual<unsigned int>("clear_size", v.size(), 0);
+	t.testEqual<unsigned int>("clear_size", v.size(), size_t(0));
 	t.testEqual< dstd::vector<double> >("clear_value", v, dstd::vector<double>() );
 	
 	
@@ -299,6 +299,46 @@ int main()
 		
 		t.testEqual("swap(vector, vector) 1", a, bb);
 		t.testEqual("swap(vector, vector) 2", b, aa);
+	}
+	
+	
+	//
+	// Iterators
+	
+	{
+		dstd::vector<int> a;
+		for(int i = 0; i < 10; ++i)
+		{
+			a.push_back(i);
+		}
+		
+		{
+			dstd::vector<int>::iterator it( a.begin() );
+			dstd::vector<int>::const_iterator cit( a.begin() );
+		}
+		{
+			dstd::vector<int>::iterator it = a.begin();
+			dstd::vector<int>::const_iterator cit = a.begin();
+			++it;
+			++cit;
+		}
+		{
+			dstd::vector<int>::iterator it = a.begin();
+			dstd::vector<int>::const_iterator cit_1 = it;
+			dstd::vector<int>::const_iterator cit_2( it );
+			++it;
+			++cit_1;
+			++cit_2;
+		}
+		
+		dstd::vector<int>::iterator it = a.begin();
+		dstd::vector<int>::const_iterator cit = a.begin();
+		
+		t.testEqual("vector::iterator == vector::const_iterator", (it == cit), true);
+		t.testEqual("vector::const_iterator == vector::iterator", (cit == it), true);
+		t.testEqual("vector::iterator != vector::const_iterator", (it != cit), false);
+		t.testEqual("vector::const_iterator != vector::iterator", (cit != it), false);
+		// TODO other iterator comparisons
 	}
 	
 	
