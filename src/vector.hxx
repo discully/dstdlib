@@ -585,15 +585,23 @@ class dstd::vector<T, Allocator>::iterator
 		iterator& operator--() { (*this) -= 1; return (*this); }
 		iterator& operator--(int) { iterator temp(*this); --(*this); return temp; }
 		bool operator==(const iterator& rhs) const { return ( this->p == rhs.p ); }
-		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs.p ); }
+		bool operator==(const const_iterator& rhs) const { return ( this->p == rhs.p ); }
+		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
+		bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
 		bool operator< (const iterator& rhs) const { return ( this->p < rhs.p ); }
+		bool operator< (const const_iterator& rhs) const { return ( this->p < rhs.p ); }
 		bool operator> (const iterator& rhs) const { return ( this->p > rhs.p ); }
-		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs.p ); }
-		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs.p ); }
+		bool operator> (const const_iterator& rhs) const { return ( this->p > rhs.p ); }
+		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
+		bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
+		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
+		bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
 	
 	private:
 		
 		T* p;
+	
+	friend class const_iterator;
 };
 
 
@@ -611,10 +619,11 @@ class dstd::vector<T, Allocator>::const_iterator
 		
 		const_iterator(pointer ptr = 0) : p(ptr) {}
 		const_iterator(const const_iterator& it) : p( it.p ) {}
+		const_iterator(const iterator& it) : p( it.p ) {}
 		reference operator* () const { return *(this->p); }
 		pointer operator-> () const { return this->p; }
 		const_iterator& operator=(const const_iterator& rhs) { this->p = rhs.p; return *this; }
-		const_iterator& operator=(const dstd::vector<T, Allocator>::iterator& rhs) { this->p = rhs.p; return *this; }
+		const_iterator& operator=(const iterator& rhs) { this->p = rhs.p; return *this; }
 		// Operators with int
 		const_iterator& operator+=(const int& n){ this->p += n; return (*this); }
 		const_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
@@ -626,16 +635,25 @@ class dstd::vector<T, Allocator>::const_iterator
 		const_iterator& operator++(int) { const_iterator temp(*this); ++(*this); return temp; }
 		const_iterator& operator--() { (*this) -= 1; return (*this); }
 		const_iterator& operator--(int) { const_iterator temp(*this); --(*this); return temp; }
+		
 		bool operator==(const const_iterator& rhs) const { return ( this->p == rhs.p ); }
+		bool operator==(const iterator& rhs) const { return ( this->p == rhs.p ); }
 		bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
+		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
 		bool operator< (const const_iterator& rhs) const { return ( this->p < rhs.p ); }
+		bool operator< (const iterator& rhs) const { return ( this->p < rhs.p ); }
 		bool operator> (const const_iterator& rhs) const { return ( this->p > rhs.p ); }
+		bool operator> (const iterator& rhs) const { return ( this->p > rhs.p ); }
 		bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
+		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
 		bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
+		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
 	
 	private:
 		
 		pointer p;
+	
+	friend class iterator;
 };
 
 
