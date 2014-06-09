@@ -12,8 +12,8 @@ namespace dstd
 		
 		explicit Tester(std::string test_name) :n_fail(0), n_pass(0), name(test_name){}
 		
-		template <class T>
-		bool testEqual(const std::string& test_name, const T& test_value, const T& expected_value)
+		template <class T1, class T2>
+		bool testEqual(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
 			if( test_value == expected_value )
 			{
@@ -26,8 +26,8 @@ namespace dstd
 				return this->fail();
 			}
 		}
-		template <class T>
-		bool testNotEqual(const std::string& test_name, const T& test_value, const T& expected_value)
+		template <class T1, class T2>
+		bool testNotEqual(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
 			if( test_value != expected_value )
 			{
@@ -140,7 +140,7 @@ namespace dstd
 			++(this->n_pass);
 			return true;
 		}
-			
+		
 		unsigned int n_fail;
 		unsigned int n_pass;
 		const std::string name;
