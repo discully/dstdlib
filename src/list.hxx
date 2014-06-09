@@ -619,83 +619,28 @@ class dstd::list<T, Allocator>::iterator
 		typedef typename dstd::list<T, Allocator>::value_type value_type;
 		typedef typename dstd::list<T, Allocator>::reference reference;
 		typedef typename dstd::list<T, Allocator>::pointer pointer;
+		typedef typename dstd::list<T, Allocator>::size_type size_type;
+		typedef typename dstd::list<T, Allocator>::difference_type difference_type;
 		
 		
-		iterator(node_base* node_ptr = 0)
-			: p(node_ptr)
-		{}
+		iterator(node_base* node_ptr = 0) : p(node_ptr) {}
+		iterator(const iterator& it) { this->p = it.p; }
+		iterator operator= (const iterator& it) { this->p = it.p; return *this; }
 		
+		reference operator*() { return ( static_cast<node*>(this->p) )->value; }
+		const reference operator*() const { return ( static_cast<const node*>(this->p) )->value; }
+		pointer operator->() { return &( ( static_cast<node*>(this->p) )->value ); }
+		const pointer operator->() const { return &( ( static_cast<const node*>(this->p) )->value ); }
 		
-		operator dstd::list<T, Allocator>::const_iterator ()
-		{
-			return dstd::list<T, Allocator>::const_iterator(this->p);
-		}
+		iterator operator--() { this->p = this->p->prev; return *this; }
+		iterator operator--(int) { iterator temp(*this); --(*this); return temp; }
+		iterator operator++() { this->p = this->p->next; return *this; }
+		iterator operator++(int) { iterator temp(*this); ++(*this); return temp; }
 		
-		
-		reference operator*()
-		{
-			return ( static_cast<node*>(this->p) )->value;
-		}
-		
-		
-		const reference operator*() const
-		{
-			return ( static_cast<node*>(this->p) )->value;
-		}
-		
-		
-		pointer operator->()
-		{
-			return &( ( static_cast<node*>(this->p) )->value );
-		}
-		
-		
-		const pointer operator->() const
-		{
-			return &( ( static_cast<node*>(this->p) )->value );
-		}
-		
-		
-		iterator operator--()
-		{
-			this->p = this->p->prev;
-			return *this;
-		}
-		
-		
-		iterator operator--(int)
-		{
-			iterator temp(*this);
-			--(*this);
-			return temp;
-		}
-		
-		
-		iterator operator++()
-		{
-			this->p = this->p->next;
-			return *this;
-		}
-		
-		
-		iterator operator++(int)
-		{
-			iterator temp(*this);
-			++(*this);
-			return temp;
-		}
-		
-		
-		bool operator==(const iterator& it) const
-		{
-			return (this->p == it.p);
-		}
-		
-		
-		bool operator!=(const iterator& it) const
-		{
-			return ! (*this == it);
-		}
+		bool operator==(const iterator& it) const { return (this->p == it.p); }
+		bool operator==(const const_iterator& it) const { return (this->p == it.p); }
+		bool operator!=(const iterator& it) const { return ! (*this == it); }
+		bool operator!=(const const_iterator& it) const { return ! (*this == it); }
 	
 	
 	private:
@@ -704,6 +649,7 @@ class dstd::list<T, Allocator>::iterator
 	
 	
 	friend class dstd::list<T, Allocator>;
+	friend class dstd::list<T, Allocator>::const_iterator;
 };
 
 
@@ -722,74 +668,51 @@ class dstd::list<T, Allocator>::const_iterator
 		typedef typename dstd::list<T, Allocator>::value_type value_type;
 		typedef typename dstd::list<T, Allocator>::const_reference reference;
 		typedef typename dstd::list<T, Allocator>::const_pointer pointer;
+		typedef typename dstd::list<T, Allocator>::size_type size_type;
+		typedef typename dstd::list<T, Allocator>::difference_type difference_type;
 		
 		
-		const_iterator(node_base* node_ptr = 0)
-			: p(node_ptr)
-		{}
+		const_iterator(node_base* node_ptr = 0) : p(node_ptr) {}
+		const_iterator(const const_iterator& it) : p(it.p) {}
+		const_iterator(const iterator& it) : p(it.p) {}
 		
+		const_iterator& operator= (const const_iterator& it) { this->p = it.p; return *this; }
+		const_iterator& operator= (const iterator& it) { this->p = it.p; return *this; }
 		
-		reference operator*() const
-		{
-			return ( static_cast<node*>(this->p) )->value;
-		}
+		reference operator*() const { return ( static_cast<const node*>(this->p) )->value; }
+		pointer operator->() const { return &( ( static_cast<const node*>(this->p) )->value ); }
+		const_iterator operator--() { this->p = this->p->prev; return *this; }
+		const_iterator operator--(int) { const_iterator temp(*this); --(*this); return temp; }
+		const_iterator operator++() { this->p = this->p->next; return *this; }
+		const_iterator operator++(int) { const_iterator temp(*this); ++(*this); return temp; }
 		
-		
-		pointer operator->() const
-		{
-			return &( ( static_cast<node*>(this->p) )->value );
-		}
-		
-		
-		const_iterator operator--()
-		{
-			this->p = this->p->prev;
-			return *this;
-		}
-		
-		
-		const_iterator operator--(int)
-		{
-			iterator temp(*this);
-			--(*this);
-			return temp;
-		}
-		
-		
-		const_iterator operator++()
-		{
-			this->p = this->p->next;
-			return *this;
-		}
-		
-		
-		const_iterator operator++(int)
-		{
-			iterator temp(*this);
-			++(*this);
-			return temp;
-		}
-		
-		
-		bool operator==(const const_iterator& it) const
-		{
-			return (this->p == it.p);
-		}
-		
-		
-		bool operator!=(const const_iterator& it) const
-		{
-			return ! (*this == it);
-		}
+		bool operator==(const const_iterator& it) const { return (this->p == it.p); }
+		bool operator==(const iterator& it) const { return (this->p == it.p); }
+		bool operator!=(const const_iterator& it) const { return ! (*this == it); }
+		bool operator!=(const iterator& it) const { return ! (*this == it); }
 	
 	
 	private:
 		
-		node_base* p;
+		const node_base* p;
 	
 	
 	friend class dstd::list<T, Allocator>;
+	friend class dstd::list<T, Allocator>::iterator;
 };
+
+
+template <class T, class Allocator>
+bool operator== (const typename dstd::list<T,Allocator>::iterator& lhs, const typename dstd::list<T,Allocator>::const_iterator& rhs)
+{
+	return (rhs == lhs);
+}
+
+template <class T, class Allocator>
+bool operator!= (const typename dstd::list<T,Allocator>::iterator& lhs, const typename dstd::list<T,Allocator>::const_iterator& rhs)
+{
+	return (rhs != lhs);
+}
 
 
 
