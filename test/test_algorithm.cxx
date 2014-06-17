@@ -629,6 +629,7 @@ int main()
 	
 	//
 	// Heap
+	// TODO: implement compare function versions
 	
 	{
 		dstd::vector<int> v;
