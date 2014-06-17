@@ -10,6 +10,20 @@
 
 namespace dstd
 {
+	namespace impl
+	{
+		template <class RandomIterator> void heap_drop(RandomIterator first, RandomIterator last, RandomIterator element);
+		template <class RandomIterator, class Compare> void heap_drop(RandomIterator first, RandomIterator last, RandomIterator element, Compare comp);
+		template <class RandomIterator>	RandomIterator heap_child(RandomIterator first, RandomIterator last, RandomIterator parent);
+		template <class RandomIterator> RandomIterator heap_max_child(RandomIterator first, RandomIterator last, RandomIterator parent);
+		template <class RandomIterator, class Compare> RandomIterator heap_max_child(RandomIterator first, RandomIterator last, RandomIterator parent, Compare comp);
+		template <class RandomIterator> RandomIterator heap_parent(RandomIterator first, RandomIterator element);
+		
+		template <class RandomIterator> void make_heap(RandomIterator first, RandomIterator last, RandomIterator parent);
+		template <class RandomIterator, class Compare> void make_heap(RandomIterator first, RandomIterator last, RandomIterator parent, Compare comp);
+	}
+	
+	
 	//
 	// Non-modifying sequence operations
 	
@@ -328,8 +342,13 @@ namespace dstd
 //Exchange values of two objects (function template )
 //swap_ranges
 //Exchange values of two ranges (function template )
-//iter_swap
-//Exchange values of objects pointed by two iterators (function template )
+	
+	template <class ForwardIterator1, class ForwardIterator2>
+	void iter_swap(ForwardIterator1 a, ForwardIterator2 b)
+	{
+		dstd::swap(*a, *b);
+	}
+	
 //transform
 //Transform range (function template )
 //replace
@@ -437,21 +456,229 @@ namespace dstd
 
 
 
-//
-// Heap
-//
-
-// push_heap
-// Push element into heap range (function template )
-// pop_heap
-// Pop element from heap range (function template )
-// make_heap
-// Make heap from range (function template )
-// sort_heap
-// Sort elements of heap (function template )
-
-
-
+	//
+	// Heap
+	//
+	
+	
+	template <class RandomIterator>
+	void impl::heap_drop(RandomIterator first, RandomIterator last, RandomIterator element)
+	{
+		if( element == last ) return;
+		
+		RandomIterator child = dstd::impl::heap_max_child(first, last, element);
+		
+		while( child != last )
+		{
+			if( *element < *child )
+			{
+				dstd::iter_swap(element, child);
+				element = child;
+				child = dstd::impl::heap_max_child(first, last, element);
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	
+	
+	template <class RandomIterator, class Compare>
+	void impl::heap_drop(RandomIterator first, RandomIterator last, RandomIterator element, Compare comp)
+	{
+		if( element == last ) return;
+		
+		RandomIterator child = dstd::impl::heap_max_child(first, last, element, comp);
+		
+		while( child != last )
+		{
+			if( comp(*element, *child) )
+			{
+				dstd::iter_swap(element, child);
+				element = child;
+				child = dstd::impl::heap_max_child(first, last, element);
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	
+	
+	template <class RandomIterator>
+	RandomIterator impl::heap_child(RandomIterator first, RandomIterator last, RandomIterator parent)
+	{
+		RandomIterator child = first + ( 2*(parent - first) + 1 );
+		return ( child < last ) ? child : last;
+	}
+	
+	
+	template <class RandomIterator>
+	RandomIterator impl::heap_max_child(RandomIterator first, RandomIterator last, RandomIterator parent)
+	{
+		RandomIterator child1 = dstd::impl::heap_child(first, last, parent);
+		
+		if( child1 >= last ) return last;
+		
+		RandomIterator child2 = child1 + 1;
+		
+		if( child2 >= last ) return child1;
+		
+		if( *child1 < *child2 )
+		{
+			return child2;
+		}
+		else
+		{
+			return child1;
+		}
+	}
+	
+	
+	template <class RandomIterator, class Compare>
+	RandomIterator impl::heap_max_child(RandomIterator first, RandomIterator last, RandomIterator parent, Compare comp)
+	{
+		RandomIterator child1 = dstd::impl::heap_child(first, last, parent);
+		
+		if( child1 >= last ) return last;
+		
+		RandomIterator child2 = child1 + 1;
+		
+		if( child2 >= last ) return child1;
+		
+		if( comp(*child1, *child2) )
+		{
+			return child2;
+		}
+		else
+		{
+			return child1;
+		}
+	}
+	
+	
+	template <class RandomIterator>
+	RandomIterator impl::heap_parent(RandomIterator first, RandomIterator element)
+	{
+		return ( first + ( ((element - first)+1) / 2 ) );
+	}
+	
+	
+	template <class RandomIterator>
+	void impl::make_heap(RandomIterator first, RandomIterator last, RandomIterator element)
+	{
+		if( element >= last ) return;
+		RandomIterator child = dstd::impl::heap_child(first, last, element);
+		dstd::impl::make_heap(first, last, child);
+		dstd::impl::make_heap(first, last, child+1);
+		dstd::impl::heap_drop(first, last, element);
+	}
+	
+	
+	template <class RandomIterator>
+	void push_heap(RandomIterator first, RandomIterator last)
+	{
+		RandomIterator new_element = last - 1;
+		RandomIterator parent;
+		
+		while( new_element != first )
+		{
+			parent = dstd::impl::heap_parent(first, new_element);
+			
+			if( *parent < *new_element )
+			{
+				dstd::iter_swap(parent, new_element);
+				new_element = parent;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	
+	
+	template <class RandomIterator, class Compare>
+	void push_heap(RandomIterator first, RandomIterator last, Compare comp)
+	{
+		RandomIterator new_element = last - 1;
+		RandomIterator parent;
+		
+		while( new_element != first )
+		{
+			parent = dstd::impl::heap_parent(first, new_element);
+			
+			if( comp(*parent, *new_element) )
+			{
+				dstd::iter_swap(parent, new_element);
+				new_element = parent;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	
+	
+	template <class RandomIterator>
+	void pop_heap(RandomIterator first, RandomIterator last)
+	{
+		// Put the element from the top of the heap at the end, and decrement 'last'
+		// so that [first,last) contains the remaining elements
+		--last;
+		dstd::iter_swap(first, last);
+		dstd::impl::heap_drop(first, last, first);
+	}
+	
+	
+	template <class RandomIterator, class Compare>
+	void pop_heap(RandomIterator first, RandomIterator last, Compare comp)
+	{
+		// Put the element from the top of the heap at the end, and decrement 'last'
+		// so that [first,last) contains the remaining elements
+		--last;
+		dstd::iter_swap(first, last);
+		dstd::impl::heap_drop(first, last, first, comp);
+	}
+	
+	
+	template <class RandomIterator>
+	void make_heap(RandomIterator first, RandomIterator last)
+	{
+		dstd::impl::make_heap(first, last, first);
+	}
+	
+	
+	template <class RandomIterator, class Compare>
+	void make_heap(RandomIterator first, RandomIterator last, Compare comp)
+	{
+		dstd::impl::make_heap(first, last, first, comp);
+	}
+	
+	
+	template <class RandomIterator>
+	void sort_heap(RandomIterator first, RandomIterator last)
+	{
+		for( ; last != first; --last)
+		{
+			pop_heap(first, last);
+		}
+	}
+	
+	
+	template <class RandomIterator, class Compare>
+	void sort_heap(RandomIterator first, RandomIterator last, Compare comp)
+	{
+		for( ; last != first; --last)
+		{
+			pop_heap(first, last, comp);
+		}
+	}
+	
+	
 	//
 	// Min/max
 	//

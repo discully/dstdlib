@@ -55,6 +55,36 @@ int increment(int& i)
 }
 
 
+template <class Container>
+bool is_heap(Container c, unsigned int size, unsigned int n)
+{
+	if( n < size )
+	{
+		unsigned int n_child = 2*n + 1;
+		if( n_child < size )
+		{
+			if( ! is_heap(c, size, n_child) ) return false;
+			if( c.at(n) < c.at(n_child) ) return false;
+		
+			++n_child;
+			if( n_child < size )
+			{
+				if( ! is_heap(c, size, n_child) ) return false;
+				if( c.at(n) < c.at(n_child) ) return false;
+			}
+		}
+	}
+	return true;
+}
+
+template <class Container>
+bool is_heap(Container c)
+{
+	return is_heap(c, c.size(), 0);
+}
+
+
+
 class IntSummation
 {
 	public:
@@ -594,6 +624,79 @@ int main()
 		t.testEqual("max_element 2", *(dstd::max_element(v.begin(), v.end(), oddLessThan)), c);
 		t.testEqual("max_element 3", dstd::max_element(empty.begin(), empty.end()), empty.end());
 		t.testEqual("max_element 4", dstd::max_element(empty.begin(), empty.end(), oddLessThan), empty.end());
+	}
+	
+	
+	//
+	// Heap
+	
+	{
+		dstd::vector<int> v;
+		v.push_back(4);
+		v.push_back(1);
+		v.push_back(9);
+		v.push_back(-3);
+		v.push_back(5);
+		v.push_back(4);
+		v.push_back(7);
+		v.push_back(99);
+		
+		// make heap
+		{
+			dstd::vector<int>::iterator first = v.begin();
+			dstd::vector<int>::iterator last = v.begin();
+			bool pass = true;
+			while( last != v.end() )
+			{
+				dstd::vector<int> v_heap(first, last);
+				
+				try
+				{
+					make_heap(v_heap.begin(), v_heap.end());
+					if( ! is_heap(v_heap) )
+					{
+						pass = false;
+						break;
+					}
+				}
+				catch(...)
+				{
+					pass = false;
+					break;
+				}
+				
+				++last;
+			}
+			t.testEqual("make_heap", pass, true);
+		}
+		
+		// sort_heap
+		{
+			dstd::vector<int>::iterator first = v.begin();
+			dstd::vector<int>::iterator last = v.begin();
+			bool pass = true;
+			while( last != v.end() )
+			{
+				dstd::vector<int> v_heap(first, last);
+				
+				dstd::make_heap(v_heap.begin(), v_heap.end());
+				dstd::vector<int> v_sorted(v_heap);
+				dstd::sort_heap(v_sorted.begin(), v_sorted.end());
+				bool pass = true;
+				for(unsigned int i = 1; i < v_sorted.size(); ++i)
+				{
+					if( v_sorted[i-1] > v_sorted[i] )
+					{
+						pass = false;
+						break;
+					}
+				}
+				
+				if( ! pass ) break;
+				++last;
+			}
+			t.testEqual("sort_heap", pass, true);
+		}
 	}
 	
 	
