@@ -562,12 +562,23 @@ namespace dstd
 	template <class RandomIterator>
 	RandomIterator impl::heap_parent(RandomIterator first, RandomIterator element)
 	{
-		return ( first + ( ((element - first)+1) / 2 ) );
+		return ( first + ( ((element - first)-1) / 2 ) );
 	}
 	
 	
 	template <class RandomIterator>
 	void impl::make_heap(RandomIterator first, RandomIterator last, RandomIterator element)
+	{
+		if( element >= last ) return;
+		RandomIterator child = dstd::impl::heap_child(first, last, element);
+		dstd::impl::make_heap(first, last, child);
+		dstd::impl::make_heap(first, last, child+1);
+		dstd::impl::heap_drop(first, last, element);
+	}
+	
+	
+	template <class RandomIterator, class Compare>
+	void impl::make_heap(RandomIterator first, RandomIterator last, RandomIterator element, Compare comp)
 	{
 		if( element >= last ) return;
 		RandomIterator child = dstd::impl::heap_child(first, last, element);

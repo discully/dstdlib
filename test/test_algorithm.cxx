@@ -670,6 +670,43 @@ int main()
 			t.testEqual("make_heap", pass, true);
 		}
 		
+		// push_heap
+		{
+			dstd::vector<int> h;
+			bool pass = true;
+			for(dstd::vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+			{
+				h.push_back(*it);
+				dstd::push_heap(h.begin(), h.end());
+				if( ! is_heap(h) )
+				{
+					pass = false;
+					break;
+				}
+			}
+			t.testEqual("push_heap", pass, true);
+		}
+		
+		// pop_heap
+		{
+			dstd::vector<int> a(v);
+			make_heap(a.begin(), a.end());
+			
+			int last = *(dstd::max_element(v.begin(), v.end()));
+			bool pass_order = true;
+			bool pass_heap = true;
+			while( ! a.empty() )
+			{
+				dstd::pop_heap(a.begin(), a.end());
+				if( a.back() > last ) pass_order = false;
+				last = a.back();
+				a.pop_back();
+				if( ! is_heap(a) ) pass_heap = false;
+			}
+			t.testEqual("pop_heap 1", pass_order, true);
+			t.testEqual("pop_heap 2", pass_heap, true);
+		}
+		
 		// sort_heap
 		{
 			dstd::vector<int>::iterator first = v.begin();
