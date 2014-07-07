@@ -19,6 +19,13 @@ namespace dstd
 		virtual const char* what() const { return "dstd::bad_alloc"; }
 	};
 	
+	class invalid_argument : public exception
+	{
+		public:
+		
+		virtual const char* what() const { return "dstd::invalid_argument"; }
+	};
+	
 	class out_of_range : public exception
 	{
 		public:
