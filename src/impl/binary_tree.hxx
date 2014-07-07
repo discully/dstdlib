@@ -183,7 +183,6 @@ class dstd::impl::binary_tree
 		{
 			if( this->is_null( parent ) )
 			{
-				std::cout << "i1" << std::endl;
 				new_node->up = this->head;
 				new_node->left = this->head;
 				new_node->right = this->head;
