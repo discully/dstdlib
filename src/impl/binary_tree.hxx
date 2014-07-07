@@ -50,9 +50,8 @@ class dstd::impl::binary_tree
 					// If the tree is empty, or has 1 node, then this check will be true:
 					if( this->left != 0 && this->right != 0 && this->left == this->right ) return true;
 					
-					// If there is more than one node in the tree, then either of these checks could be used:
-					if( this->left != 0  && this->left->up  != this ) return true;
-					//if( this->right != 0 && this->right->up != this ) return true;
+					// If there is more than one node in the tree:
+					if( ( this->right != 0  && this->right->left == this ) && ( this->left != 0 && this->left->right == this ) ) return false;
 					
 					return false;
 				}
@@ -81,11 +80,12 @@ class dstd::impl::binary_tree
 				{
 					if( this->is_header() )
 					{
+						// this is the header, so return the last node in the tree
 						return this->left;
 					}
 					else if( this->left != 0 ) // either this is not a leaf node, or it is the first node
 					{
-						if( this->left->is_header() ) return this->left; // We are the first node, so return the header node
+						if( this->left->is_header() ) return this->left; // this is the first node, so return the header
 						
 						// find the right-most node in the left subtree
 						const node* p = this->left;
@@ -115,13 +115,14 @@ class dstd::impl::binary_tree
 				{
 					if( this->is_header() )
 					{
+						// this is the header, so return the first node in the tree
 						return this->right;
 					}
 					else if( this->right != 0 ) // either this is not a leaf node, or it is the last node
 					{
-						if( this->right->is_header() ) return this->right; // We are the last node, so return the header node
+						if( this->right->is_header() ) return this->right; // this is the last node, so return the header
 						
-						// find the left-most node in the right subtree
+						// this has a right subtree, so find the left-most node in the right subtree
 						const node* p = this->right;
 						while( p->left != 0 )
 						{
@@ -131,9 +132,9 @@ class dstd::impl::binary_tree
 					}
 					else
 					{
-						// finr the first ancestor for which this is a left-child
+						// find the first ancestor for which this is a left-child
 						const node* p = this;
-						while( ! p->up->is_null() ) // condition is for safety, but ois should never be true
+						while( ! p->up->is_null() ) // condition is for safety, but it should never be true
 						{
 							if( p->up->left == p ) return p->up;
 							p = p->up;
@@ -247,7 +248,7 @@ class dstd::impl::binary_tree
 		{
 			if( this->is_null( n->left ) && this->is_null( n->right ) )
 			{
-				if( this->is_null( n->up ) ) // removing the root node, leaving the tree empty
+				if( n->up->is_header() ) // removing the root node, leaving the tree empty
 				{
 					this->head->up = this->head;
 					this->head->left = this->head;
@@ -266,6 +267,27 @@ class dstd::impl::binary_tree
 				if( this->head->left == n ) this->head->left = n->up;
 				
 				--(this->n);
+			}
+			else if( ! this->is_null( n->left ) || ! this->is_null( n->right ) )
+			{
+				node* child = this->is_null(n->left) ? n->right : n->left;
+				
+				if( this->head->right == n ) this->head->right = n->next();
+				if( this->head->left == n ) this->head->left = n->prev();
+				
+				child->up = n->up;
+				if( n->up->is_header() )
+				{
+					n->up->up = child;
+				}
+				else if( n->up->left == n )
+				{
+					n->up->left = child;
+				}
+				else
+				{
+					n->up->right = child;
+				}
 			}
 		}
 		
@@ -291,58 +313,71 @@ class dstd::impl::binary_tree
 			{
 				if( n2->up == n1 ) // n1 is n2's parent
 				{
-					n2->up = n1->up;
-					n1->up = n2;
+					const bool left_child = (n1->left == n2);
 					
-					node temp = *n1;
-					if( n1->left == n2 )
+					// sort out the (non-header) things which point to n1 and n2	
+					if( ! this->is_null(n1->up) )
 					{
-						n1->right = n2->right;
-						n2->right = temp.right;	
-						n1->left = n2->left;
-						n2->left = n1;
+						if     ( n1->up->left  == n1 ) n1->up->left  = n2;
+						else if( n1->up->right == n1 ) n1->up->right = n2;
+					}
+					
+					if( left_child )
+					{
+						if( ! this->is_null(n1->right) ) n1->right->up = n2;
+						if( ! this->is_null(n2->right) ) n2->right->up = n1;
+						if( ! this->is_null(n2->left ) ) n2->left->up  = n1;
 					}
 					else
 					{
-						n1->left = n2->left;
-						n2->left = temp.left;
-						n1->right = n2->right;
-						n2->right = n1;
+						if( ! this->is_null(n1->left ) ) n1->left->up  = n2;
+						if( ! this->is_null(n2->left ) ) n2->left->up  = n1;
+						if( ! this->is_null(n2->right) ) n2->right->up = n1;
 					}
+					
+					// sort out n1 and n2
+					node temp(*n1);
+					n1->up = n2;
+					n1->left  = n2->left;
+					n1->right = n2->right;
+					n2->up = temp.up;
+					n2->left  = left_child ? n1 : temp.left;
+					n2->right = left_child ? temp.right : n1;
 				}
-				else // they are not connected
+				else // n1 and n2 are not connected
 				{
-					node temp = *n1;
+					// sort out the (non-header) things which point to n1 and n2	
+					if( ! this->is_null(n1->up) )
+					{
+						if     ( n1->up->left  == n1 ) n1->up->left  = n2;
+						else if( n1->up->right == n1 ) n1->up->right = n2;
+					}
+					if( ! this->is_null(n2->up) )
+					{
+						if     ( n2->up->left  == n2 ) n2->up->left  = n1;
+						else if( n2->up->right == n2 ) n2->up->right = n1;
+					}
+					if( ! this->is_null(n1->left) )  n1->left->up  = n2;
+					if( ! this->is_null(n1->right) ) n1->right->up = n2;
+					if( ! this->is_null(n2->left) )  n2->left->up  = n1;
+					if( ! this->is_null(n2->right) ) n2->right->up = n1;
+					
+					// sort out n1 and n2
+					node temp(*n1);
 					*n1 = *n2;
 					*n2 = temp;
 				}
 				
-				if( n1->up == this->head )
-				{
-					this->head->up = n1;
-				}
-				else if( n2->up == this->head )
-				{
-					this->head->up = n2;
-				}
+				// sort out the header things which point to n1 or n2
 				
-				if( n1->left == this->head )
-				{
-					this->head->right = n1;
-				}
-				else if( n2->left == this->head )
-				{
-					this->head->right = n2;
-				}
+				if     ( this->head->up == n1 ) this->head->up = n2;
+				else if( this->head->up == n2 ) this->head->up = n1;
 				
-				if( n1->right == this->head )
-				{
-					this->head->left = n1;
-				}
-				else if( n2->right == this->head )
-				{
-					this->head->left = n2;
-				}
+				if     ( this->head->left == n1 ) this->head->left = n2;
+				else if( this->head->left == n2 ) this->head->left = n1;
+				
+				if     ( this->head->right == n1 ) this->head->right = n2;
+				else if( this->head->right == n2 ) this->head->right = n1;
 			}
 		}
 	
