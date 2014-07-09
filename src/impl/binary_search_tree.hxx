@@ -3,8 +3,8 @@
 
 
 
-#include <cstdlib>
-#include <iostream>
+#include "binary_tree.hxx"
+#include "../functional.hxx"
 
 
 
@@ -12,156 +12,201 @@ namespace dstd
 {
 	namespace impl
 	{
-		class binary_search_tree;
+		template <class T, class Compare, bool AllowMultiple> class binary_search_tree;
 	}
 }
 
 
 
+template <class T, class Compare = dstd::less<T>, bool AllowMultiple = false >
 class dstd::impl::binary_search_tree
 {
 	public:
 		
-		/// A node in a binary_search_tree.
-		/// Stores only relative positional information and not the data.
-		/// Implementers should inherit from this class and store the data in the derived class.
-		class node
+		typedef T value_type;
+		typedef typename dstd::impl::binary_tree::size_type size_type;
+		class node;
+		
+		
+		binary_search_tree(const Compare& compare = Compare())
+			: tree( new dstd::impl::binary_tree() ), comp( compare )
+		{}
+		
+		
+		~binary_search_tree()
 		{
-			public:
-				
-				/// Default Constructor. initialises all pointers to 0.
-				node()
-					: up(0), l(0), r(0)
-				{}
-				
-				node(node* parent, node* left, node* right)
-					: up(parent), l(left), r(right)
-				{}
-				
-				/// Copy Constuctor
-				node(const node& n)
-					: up(n.up), l(n.l), r(n.r)
-				{}
-				
-				virtual ~node(){}
-				
-				/// Returns this node's left-child node.
-				/// @returns A pointer to this node's right-child, the header node if this
-				/// is the largest node in the tree, or 0 if it has no right-child.
-				node* left() { return this->l; }
-				const node* left() const { return this->l; }
-				
-				/// Returns the next node in-order.
-				/// @returns A pointer to the next in-order node, unless this is the largest
-				/// node in the tree in which case it returns the header node.
-				node* next() { return const_cast<node*>( this->next_node() ); }
-				const node* next() const { return this->next_node(); }
-				
-				/// Returns this node's parent-node.
-				/// @returns A pointer to the parent node, unless this is the root node
-				/// in which case it returns 0.
-				node* parent() { return this->up; }
-				const node* parent() const { return this->up; }
-				
-				/// Returns this node's in-order predecessor.
-				/// @returns a pointer to the node's in-order predecessor, or 0 if node is the smallest in its subtree.
-				node* predecessor();
-				const node* predecessor() const;
-				
-				/// Returns the previous node in-order.
-				/// @returns A pointer to the previous in-order node, unless this is the smallest
-				/// node in the tree in which case it returns the header node.
-				node* prev() { return const_cast< node* >( this->prev_node() ); }
-				const node* prev() const { return this->prev_node(); }
-				
-				/// Returns this node's right-child node.
-				/// @returns A pointer to this node's right-child, the header node if this
-				/// is the largest node in the tree, or 0 if it has no right-child.
-				const node* right() const { return this->r; }
-				node* right() { return this->r; }
-				
-				/// Returns the node's in-order successor.
-				/// @returns a pointer to the node's in-order predecessor, or 0 if node is the largest in its subtree.
-				node* successor();
-				const node* successor() const;
-			
-			
-			private:
-				
-				const node* next_node() const;
-				const node* prev_node() const;
-				
-				/// Pointer to this node's parent-node, or 0 if it is the root node.
-				node* up;
-				
-				/// Pointer to this node's left-child node, or the header node if it the smallest node in the tree
-				node* l;
-				
-				/// Pointer to this node's right-child node, or the header node if it the largest node in the tree
-				node* r;
-			
-			
-			friend class binary_search_tree;
-		};
-		
-		
-		
-		binary_search_tree()
-			: header(new node(0,0,0)), n(0)
-		{
-			this->header->l = this->header;
-			this->header->r = this->header;
+			delete( this->tree );
 		}
 		
 		
-		bool empty() const { return (this->header->up == 0); }
+		bool empty() const { return this->tree->empty(); }
 		
 		
-		node* head() { return this->header; }
-		const node* head() const { return this->header; }
+		node* find(const value_type& value)
+		{
+			node* n = this->root();
+			while( ! this->is_null(n) )
+			{
+				if( this->comp(value, n->value) )
+				{
+					n = n->left_child();
+				}
+				else if( this->comp(n->value, value) )
+				{
+					n = n->right_child();
+				}
+				else
+				{
+					return n;
+				}
+			}
+			
+			// we didn't find it
+			return this->header();
+		}
+		const node* find(const value_type& value) const
+		{
+			const node* n = this->root();
+			while( ! this->is_null(n) )
+			{
+				if( this->comp(value, n->value) )
+				{
+					n = n->left_child();
+				}
+				else if( this->comp(n->value, value) )
+				{
+					n = n->right_child();
+				}
+				else
+				{
+					return n;
+				}
+			}
+			
+			// we didn't find it
+			return this->header();
+		}
 		
 		
-		void insert(node* new_node, node* parent_node = 0, bool to_left = true);
+		binary_tree::node* header() { return this->tree->header(); }
+		const binary_tree::node* header() const { return this->tree->header(); }
 		
 		
-		void insert_left(node* new_node, node* parent_node) { this->insert(new_node, parent_node, true); }
+		node* insert(node* n, node* parent = 0)
+		{
+			if( parent == 0 ) parent = this->root();
+			
+			if( this->is_null(parent) )
+			{
+				this->tree->insert_left(n, parent);
+				return n;
+			}
+			else
+			{
+				while( true )
+				{
+					if( this->comp(parent->value, n->value) )
+					{
+						if( this->is_null(parent->right) )
+						{
+							this->tree->insert_right(n, parent);
+							return n;
+						}
+						parent = parent->right_child();
+					}
+					else if( this->comp(n->value, parent->value) || AllowMultiple )
+					{
+						if( this->is_null(parent->left) )
+						{
+							this->tree->insert_left(n, parent);
+							return n;
+						}
+						parent = parent->left_child();
+					}
+					else // the values are equal but AllowMultiple is false
+					{
+						return parent;
+					}
+				}
+			}
+		}
 		
 		
-		void insert_right(node* new_node, node* parent_node) { this->insert(new_node, parent_node, false); }
+		bool is_null(const binary_tree::node* n) const { return this->tree->is_null(n); }
 		
 		
-		bool is_null(node* n) { return (n == 0 || n == this->header); }
+		node* left_most() { return static_cast<node*>( this->tree->left_most() ); }
+		const node* left_most() const { return static_cast<const node*>( this->tree->left_most() ); }
 		
 		
-		node* largest() { return this->header->l; }
+		void remove(node* n)
+		{
+			if( ! this->is_null(n->left) && ! this->is_null(n->right) )
+			{
+				this->swap(n, n->prev());
+			}
+			this->tree->remove(n);
+		}
 		
 		
-		const node* largest() const { return this->header->l; }
+		node* right_most() { return static_cast<node*>( this->tree->right_most() ); }
+		const node* right_most() const { return static_cast<const node*>( this->tree->right_most() ); }
 		
 		
-		/// Remove a node from the tree's structure.
-		/// @param n Pointer to the node to be removed.
-		/// @throws dstd::out_of_range if n is 0 or the header.
-		void remove(node* n);
+		node* root() {return static_cast<node*>( this->tree->root() ); }
+		const node* root() const { return static_cast<const node*>( this->tree->root() ); }
 		
 		
-		/// Returns the left-most node in the tree.
-		/// @returns pointer to the left-most node in the tree, of 0 is the tree is empty
-		node* smallest() { return this->header->r; }
-		const node* smallest() const { return this->header->r; }
+		size_type size() const { return this->tree->size(); }
 		
 		
-		node* root() { return this->header->up; }
-		const node* root() const { return this->header->up; }
-		
-		
-		size_t size() const { return this->n; }
-		
+		void swap(node* n1, node* n2) { this->tree->swap( static_cast<binary_tree::node*>(n1), static_cast<binary_tree::node*>(n2) ); }
+	
 	
 	private:
 		
-		node* header;
-		size_t n;
+		dstd::impl::binary_tree* tree;
+		Compare comp;
+};
+
+
+
+template <class T, class Compare, bool AllowMultiple>
+class dstd::impl::binary_search_tree<T, Compare, AllowMultiple>::node : public dstd::impl::binary_tree::node
+{
+	public:
+		
+		typedef typename dstd::impl::binary_search_tree<T, Compare, AllowMultiple>::value_type value_type;
+		
+		
+		node(const value_type& node_value = value_type())
+			: binary_tree::node(), value( node_value )
+		{}
+		
+		
+		node* left_child() { return static_cast<node*>( this->left ); }
+		const node* left_child() const { return static_cast<const node*>( this->left ); }
+		
+		
+		node* next() { return static_cast<node*>( binary_tree::node::next() ); }
+		const node* next() const { return static_cast<const node*>( binary_tree::node::next() ); }
+		
+		
+		node* parent() { return static_cast<node*>( this->up ); }
+		const node* parent() const { return static_cast<const node*>( this->up ); }
+		
+		
+		node* prev() { return static_cast<node*>( binary_tree::node::prev() ); }
+		const node* prev() const { return static_cast<const node*>( binary_tree::node::prev() ); }
+		
+		
+		node* right_child() { return static_cast<node*>( this->right ); }
+		const node* right_child() const { return static_cast<const node*>( this->right ); }
+	
+	public:	
+		
+		value_type value;
+	
 };
 
 
