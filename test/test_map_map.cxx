@@ -17,6 +17,13 @@ std::ostream& operator<<(std::ostream& stream, const dstd::map<Key,T>& m)
 	return stream;
 }
 
+template <class Key, class T>
+std::ostream& operator<< (std::ostream& os, const dstd::pair<Key,T>& p)
+{
+	os << "< " << p.first << ", " << p.second << " >";
+	return os;
+}
+
 
 
 int main()
@@ -414,10 +421,27 @@ int main()
 			if( i%2 != 0 ) m1.insert(dstd::pair<int,int>(i,i));
 			m2.insert(dstd::pair<int,int>(i,i));
 		}
-		for(dstd::map<int,int>::iterator it = m2.begin(); it != m2.end(); ++it)
+		
+		std::cout << m2 << std::endl;
+		bool del = true;
+		dstd::map<int,int>::iterator it1, it2;
+		for(it1 = m2.begin(); it1 != m2.end(); ++it1, del = (!del))
 		{
-			m2.erase(it++);
+			std::cout << m2 << std::endl;
+			std::cout << *it1 << std::endl;
+			if( del )
+			{
+				it2 = it1;
+			}
+			else
+			{
+				std::cout << "go " << *it2 << std::endl;
+				m2.erase(it2);
+			}
+			//it2 = it1;
 		}
+		std::cout << m1 << std::endl;
+		std::cout << m2 << std::endl;
 		t.testEqual("map::erase(it)", m1, m2);
 	}
 	
@@ -676,7 +700,7 @@ int main()
 	
 	{
 		const int n = 10;
-		const double x = 3.14;
+		//const double x = 3.14;
 		dstd::map<int, double> m;
 		for(unsigned int i = 0; i < n; ++i)
 		{
@@ -707,7 +731,7 @@ int main()
 	
 	{
 		const int n = 10;
-		const double x = 3.14;
+		//const double x = 3.14;
 		dstd::map<int, double> m;
 		for(unsigned int i = 0; i < n; ++i)
 		{
@@ -733,7 +757,7 @@ int main()
 	
 	{
 		const int n = 10;
-		const double x = 3.14;
+		//const double x = 3.14;
 		dstd::map<int, double> m;
 		for(unsigned int i = 0; i < n; ++i)
 		{

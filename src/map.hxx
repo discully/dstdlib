@@ -19,7 +19,7 @@ namespace dstd
 {
 	namespace impl
 	{
-		template < class Key, class T, class Compare, class Allocator > class map_base;
+		template < class Key, class T, class Compare, class Allocator, bool AllowMultiple > class map_base;
 	}
 	template < class Key, class T, class Compare, class Allocator > class map;
 	template < class Key, class T, class Compare, class Allocator > class multimap;
@@ -27,7 +27,7 @@ namespace dstd
 
 
 
-template <class Key, class T, class Compare, class Allocator>
+template <class Key, class T, class Compare, class Allocator, bool AllowMultiple>
 class dstd::impl::map_base
 {
 	public:
@@ -35,6 +35,8 @@ class dstd::impl::map_base
 		typedef Key key_type;
 		typedef T mapped_type;
 		typedef dstd::pair< key_type, mapped_type > value_type;
+		typedef size_t size_type;
+		typedef ptrdiff_t difference_type;
 		typedef Compare key_compare;
 		class value_compare;
 		typedef Allocator allocator_type;
@@ -50,9 +52,9 @@ class dstd::impl::map_base
 		
 	protected:
 		
-		class node;
-		typedef typename Allocator::template rebind<node>::other node_allocator_type;
-		typedef dstd::impl::binary_search_tree tree_type;
+		typedef dstd::impl::binary_search_tree<value_type, value_compare, AllowMultiple> tree_type;
+		typedef typename tree_type::node node;
+		typedef typename Allocator::template rebind<typename tree_type::node>::other node_allocator_type;
 		
 		
 	public:
@@ -60,7 +62,7 @@ class dstd::impl::map_base
 		
 		/// Constructs an empty map with no elements.
 		explicit map_base(const key_compare& compare = key_compare(), const allocator_type& alloc = allocator_type())
-			: a(alloc), comp(compare), tree(new tree_type())
+			: a(alloc), comp(compare), tree(new tree_type(value_compare(compare)))
 		{}
 		
 		
@@ -80,13 +82,13 @@ class dstd::impl::map_base
 		/// If the container is empty, the returned iterator value shall not be dereferenced.
 		iterator begin()
 		{
-			return iterator( this->tree->smallest() );
+			return iterator( this->tree->left_most() );
 		}
 		
 		
 		const_iterator begin() const
 		{
-			return const_iterator( this->tree->smallest() );
+			return const_iterator( this->tree->left_most() );
 		}
 		
 		
@@ -94,13 +96,13 @@ class dstd::impl::map_base
 		/// If the container is empty, this function returns the same as map::begin.
 		iterator end()
 		{
-			return iterator( this->tree->head() );
+			return iterator( this->tree->header() );
 		}
 		
 		
 		const_iterator end() const
 		{
-			return iterator( this->tree->head() );
+			return iterator( this->tree->header() );
 		}
 		
 		
@@ -138,12 +140,12 @@ class dstd::impl::map_base
 		/// Returns whether the map container is empty (i.e. whether its size is 0).
 		bool empty() const
 		{
-			return( this->tree->root() == 0 );
+			return( this->tree->empty() );
 		}
 		
 		
 		/// Returns the number of elements in the map container.
-		size_t size() const
+		size_type size() const
 		{
 			return this->tree->size();
 		}
@@ -153,9 +155,9 @@ class dstd::impl::map_base
 		/// This is the maximum potential size the container can reach due to known system or library implementation limitations,
 		/// but the container is by no means guaranteed to be able to reach that size:
 		/// it can still fail to allocate storage at any point before that size is reached.
-		size_t max_size() const
+		size_type max_size() const
 		{
-			return std::numeric_limits<size_t>::max();
+			return std::numeric_limits<size_type>::max();
 		}
 		
 		
@@ -167,8 +169,8 @@ class dstd::impl::map_base
 		/// @param position Iterator to the element to be removed.
 		void erase(iterator position)
 		{
-			this->tree->remove( position.p );
 			node* n = static_cast<node*>( position.p );
+			this->tree->remove( n );
 			this->a.destroy( n );
 			this->a.deallocate( n );
 		}
@@ -178,10 +180,10 @@ class dstd::impl::map_base
 		/// @param k Key of the elements to be erased.
 		/// @param k Key of the elements to be erased.
 		/// @returns The number of elements erased
-		size_t erase(const key_type& k)
+		size_type erase(const key_type& k)
 		{
 			dstd::pair<iterator,iterator> range = this->equal_range(k);
-			size_t n = this->size();
+			size_type n = this->size();
 			this->erase(range.first, range.second);
 			return (n - this->size());
 		}
@@ -206,7 +208,7 @@ class dstd::impl::map_base
 			// delete all nodes and reset the tree
 			this->delete_nodes( this->tree->root() );
 			delete(this->tree);
-			this->tree = new tree_type();
+			this->tree = new tree_type(this->value_comp());
 		}
 		
 		
@@ -229,131 +231,51 @@ class dstd::impl::map_base
 		
 		
 		//
-		// Operations
+		// Lookup
+		
+		
+		dstd::pair<iterator,iterator> equal_range(const key_type& key)
+		{
+			dstd::pair<const node*,const node*> equal = this->equal_range_nodes(key);
+			iterator lower = equal.first == 0 ? this->end() : iterator(const_cast<node*>(equal.first));
+			iterator upper = equal.second == 0 ? this->end() : iterator(const_cast<node*>(equal.second));
+			return dstd::pair<iterator,iterator>( lower, upper );
+		}
+		dstd::pair<const_iterator,const_iterator> equal_range(const key_type& key) const
+		{
+			dstd::pair<const node*,const node*> equal = this->equal_range_nodes(key);
+			const_iterator lower = equal.first == 0 ? this->end() : const_iterator(equal.first);
+			const_iterator upper = equal.second == 0 ? this->end() : const_iterator(equal.second);
+			return dstd::pair<const_iterator,const_iterator>( lower, upper );
+		}
 		
 		
 		/// Returns an iterator pointing to the first element in the container whose key is not considered to go before k
 		/// (i.e., either it is equivalent or goes after).
-		iterator lower_bound(const key_type& k)
+		iterator lower_bound(const key_type& key)
 		{
-			node* n = static_cast<node*>( this->tree->root() );
-			if( n == 0 ) return this->end();
-			while( true )
-			{
-				if( this->comp( n->value.first, k ) )
-				{
-					if( this->tree->is_null( n->right() ) )
-					{
-						// We have reached a leaf. k doesn't exist.
-						// But this leaf goes before k, so increment before returning
-						iterator it(n);
-						++it;
-						return it;
-					}
-					else
-					{
-						n = static_cast<node*>( n->right() );
-					}
-				}
-				else
-				{
-					if( this->tree->is_null( n->left() ) )
-					{
-						// we have reached a leaf. k may or may not exist.
-						return iterator(n);
-					}
-					else
-					{
-						n = static_cast<node*>( n->left() );
-					}
-				}
-			}
+			node* n = const_cast<node*>( this->lower_bound_node(key) );
+			return ( n == 0 ? this->end() : iterator(n) );
 		}
-		
-		
-		const_iterator lower_bound(const key_type& k) const
+		const_iterator lower_bound(const key_type& key) const
 		{
-			const node* n = static_cast<const node*>( this->tree->root() );
-			if( n == 0 ) return this->end();
-			while( true )
-			{
-				if( this->comp( n->value.first, k ) )
-				{
-					if( this->tree->is_null( n->right() ) )
-					{
-						// We have reached a leaf. k doesn't exist.
-						// But this leaf goes before k, so increment before returning
-						const_iterator it(n);
-						++it;
-						return it;
-					}
-					else
-					{
-						n = static_cast<const node*>( n->right() );
-					}
-				}
-				else
-				{
-					if( this->tree->is_null( n->left() ) )
-					{
-						// we have reached a leaf. k may or may not exist.
-						return const_iterator(n);
-					}
-					else
-					{
-						n = static_cast<const node*>( n->left() );
-					}
-				}
-			}
+			const node* n = this->lower_bound_node(key);
+			return ( n == 0 ? this->end() : const_iterator(n) );
 		}
 		
 		
 		/// Returns an iterator pointing to the first element in the container whose key is considered to go after k.
-		iterator upper_bound(const key_type& k)
+		iterator upper_bound(const key_type& key)
 		{
-			iterator it = this->lower_bound(k);
-			while( it != this->end() && ! this->comp( k, it->first) )
-			{
-				++it;
-			}
-			return it;
+			node* n = const_cast<node*>( this->upper_bound_node(key) );
+			return ( n == 0 ? this->end() : iterator(n) );
+		}
+		const_iterator upper_bound(const key_type& key) const
+		{
+			const node* n = this->upper_bound_node(key);
+			return ( n == 0 ? this->end() : const_iterator(n) );
 		}
 		
-		
-		const iterator upper_bound(const key_type& k) const
-		{
-			iterator it = this->lower_bound(k);
-			while( it != this->end() && ! this->comp( k, it->first) )
-			{
-				++it;
-			}
-			return it;
-		}
-		
-		
-		/// Returns the bounds of a range that includes all the elements in the container which have a key equivalent to k.
-		dstd::pair<iterator,iterator> equal_range(const key_type& k)
-		{
-			iterator first = this->lower_bound(k);
-			iterator last = first;
-			while( this->keys_equal(last->first, k) )
-			{
-				++last;
-			}
-			return dstd::pair<iterator, iterator>( first, last );
-		}
-		
-		
-		dstd::pair<const_iterator,const_iterator> equal_range(const key_type& k) const
-		{
-			const_iterator first = this->lower_bound(k);
-			const_iterator last = first;
-			while( this->keys_equal(last->first, k) )
-			{
-				++last;
-			}
-			return dstd::pair<const_iterator, const_iterator>( first, last );
-		}
 		
 		
 		//
@@ -370,169 +292,241 @@ class dstd::impl::map_base
 	protected:
 		
 		
-		/// Returns a pointer to the highest node in the tree with key equal to k, or 0 if there is no such node.
-		node* find_node(const key_type& k, node* start = 0)
+//		/// Returns a pointer to the highest node in the tree with key equal to k, or 0 if there is no such node.
+//		node* find_node(const key_type& k, node* start = 0)
+//		{
+//			if( this->tree->empty() ) return 0;
+//			if( start == 0 ) start = static_cast<node*>( this->tree->root() );
+//			node* n = start;
+//			while( ! this->tree->is_null(n) )
+//			{
+//				if( this->comp( k, n->value.first ) )
+//				{
+//					n = static_cast<node*>( n->left() );
+//				}
+//				else if( this->comp( n->value.first, k ) )
+//				{
+//					n = static_cast<node*>( n->right() );
+//				}
+//				else
+//				{
+//					return n;
+//				}
+//			}
+//			return 0;
+//		}
+//		
+//		
+//		const node* find_node(const key_type& k, const node* start = 0) const
+//		{
+//			if( this->tree->empty() ) return 0;
+//			if( start == 0 ) start = static_cast<const node*>( this->tree->root() );
+//			const node* n = start;
+//			while( ! this->tree->is_null(n) )
+//			{
+//				if( this->comp( k, n->value.first ) )
+//				{
+//					n = static_cast<const node*>( n->left() );
+//				}
+//				else if( this->comp( n->value.first, k ) )
+//				{
+//					n = static_cast<const node*>( n->right() );
+//				}
+//				else
+//				{
+//					return n;
+//				}
+//			}
+//			return 0;
+//		}
+//		
+//		
+//		/// Under the assumption that the insertion of a node with key k is legal, finds
+//		/// the parent node onto which it should be inserted.
+//		/// Returns 0 if the tree is empty.
+//		node* find_insert_parent(const key_type& k, node* start = 0)
+//		{
+//			if( this->tree->empty() ) return 0;
+//			if( start == 0 ) start = static_cast<node*>( this->tree->root() );
+//			node* n = start;
+//			while( true )
+//			{
+//				if( this->comp( n->value.first, k ) )
+//				{
+//					if( this->tree->is_null( n->right() ) ) return n;
+//					else n = static_cast<node*>( n->right() );
+//				}
+//				else
+//				{
+//					if( this->tree->is_null( n->left() ) ) return n;
+//					else n = static_cast<node*>( n->left() );
+//				}
+//			}
+//		}
+		
+		
+//		/// Searches the tree for a node with key k, if that node does not exist it returns
+//		/// the parent under which it would be created.
+//		node* get_node(const key_type& k)
+//		{
+//			if( this->tree->empty() ) return 0;
+//			node* n = static_cast<node*>( this->tree->root() );
+//			while( true )
+//			{
+//				if( this->comp( k, n->value.first ) )
+//				{
+//					if( this->tree->is_null(n->left()) ) return n;
+//					else n = static_cast<node*>( n->left() );
+//				}
+//				else if( this->comp( n->value.first, k ) )
+//				{
+//					if( this->tree->is_null(n->right()) ) return n;
+//					else n = static_cast<node*>( n->right() );
+//				}
+//				else
+//				{
+//					return n;
+//				}
+//			}
+//		}
+//		
+//		
+//		const node* get_node(const key_type& k) const
+//		{
+//			if( this->tree->empty() ) return 0;
+//			node* n = static_cast<node*>( this->tree->root() );
+//			while( true )
+//			{
+//				if( this->comp( k, n->value.first ) )
+//				{
+//					if( this->tree->is_null(n->left()) ) return n;
+//					else n = static_cast<node*>( n->left() );
+//				}
+//				else if( this->comp( n->value.first, k ) )
+//				{
+//					if( this->tree->is_null(n->right()) ) return n;
+//					else n = static_cast<node*>( n->right() );
+//				}
+//				else
+//				{
+//					return n;
+//				}
+//			}
+//		}
+
+
+		const node* find_node(const key_type& k) const
 		{
-			if( this->tree->empty() ) return 0;
-			if( start == 0 ) start = static_cast<node*>( this->tree->root() );
-			node* n = start;
+			const node* n = this->tree->root();
 			while( ! this->tree->is_null(n) )
 			{
-				if( this->comp( k, n->value.first ) )
+				if( this->comp(k, n->value.first) )
 				{
-					n = static_cast<node*>( n->left() );
+					n = n->left_child();
 				}
-				else if( this->comp( n->value.first, k ) )
+				else if( this->comp(n->value.first, k) )
 				{
-					n = static_cast<node*>( n->right() );
+					n = n->right_child();
 				}
 				else
 				{
 					return n;
 				}
 			}
+			
+			// we didn't find it
 			return 0;
 		}
 		
-		
-		const node* find_node(const key_type& k, const node* start = 0) const
+		node* insert_node(const value_type& value, node* parent = 0)
 		{
-			if( this->tree->empty() ) return 0;
-			if( start == 0 ) start = static_cast<const node*>( this->tree->root() );
-			const node* n = start;
-			while( ! this->tree->is_null(n) )
-			{
-				if( this->comp( k, n->value.first ) )
-				{
-					n = static_cast<const node*>( n->left() );
-				}
-				else if( this->comp( n->value.first, k ) )
-				{
-					n = static_cast<const node*>( n->right() );
-				}
-				else
-				{
-					return n;
-				}
-			}
-			return 0;
-		}
-		
-		
-		/// Under the assumption that the insertion of a node with key k is legal, finds
-		/// the parent node onto which it should be inserted.
-		/// Returns 0 if the tree is empty.
-		node* find_insert_parent(const key_type& k, node* start = 0)
-		{
-			if( this->tree->empty() ) return 0;
-			if( start == 0 ) start = static_cast<node*>( this->tree->root() );
-			node* n = start;
-			while( true )
-			{
-				if( this->comp( n->value.first, k ) )
-				{
-					if( this->tree->is_null( n->right() ) ) return n;
-					else n = static_cast<node*>( n->right() );
-				}
-				else
-				{
-					if( this->tree->is_null( n->left() ) ) return n;
-					else n = static_cast<node*>( n->left() );
-				}
-			}
-		}
-		
-		
-		/// Searches the tree for a node with key k, if that node does not exist it returns
-		/// the parent under which it would be created.
-		node* get_node(const key_type& k)
-		{
-			if( this->tree->empty() ) return 0;
-			node* n = static_cast<node*>( this->tree->root() );
-			while( true )
-			{
-				if( this->comp( k, n->value.first ) )
-				{
-					if( this->tree->is_null(n->left()) ) return n;
-					else n = static_cast<node*>( n->left() );
-				}
-				else if( this->comp( n->value.first, k ) )
-				{
-					if( this->tree->is_null(n->right()) ) return n;
-					else n = static_cast<node*>( n->right() );
-				}
-				else
-				{
-					return n;
-				}
-			}
-		}
-		
-		
-		const node* get_node(const key_type& k) const
-		{
-			if( this->tree->empty() ) return 0;
-			node* n = static_cast<node*>( this->tree->root() );
-			while( true )
-			{
-				if( this->comp( k, n->value.first ) )
-				{
-					if( this->tree->is_null(n->left()) ) return n;
-					else n = static_cast<node*>( n->left() );
-				}
-				else if( this->comp( n->value.first, k ) )
-				{
-					if( this->tree->is_null(n->right()) ) return n;
-					else n = static_cast<node*>( n->right() );
-				}
-				else
-				{
-					return n;
-				}
-			}
-		}
-		
-		
-		node* insert_node(const value_type& value, node* parent)
-		{
+			// TODO: this is messy. if the value alread exists and we're
+			// not allowed multiple, we shouldn't allocate/construct a new node
+			
 			node* new_node = this->a.allocate(1);
 			this->a.construct(new_node, node(value));
-			if( parent == 0 )
+			
+			node* inserted_node = this->tree->insert( new_node );
+			
+			if( inserted_node != new_node )
 			{
-				this->tree->insert( static_cast<tree_type::node*>(new_node) );
+				this->a.destroy(new_node);
+				this->a.deallocate(new_node);
 			}
-			else if( this->comp( parent->value.first, value.first ) )
-			{
-				this->tree->insert_right( static_cast<tree_type::node*>(new_node) , static_cast<tree_type::node*>(parent) );
-			}
-			else
-			{
-				this->tree->insert_left( static_cast<tree_type::node*>(new_node) , static_cast<tree_type::node*>(parent) );
-			}
-			return new_node;
-		}
-		
-		
-		void delete_nodes(tree_type::node* root)
-		{
-			if( ! this->tree->is_null( root ) )
-			{
-				this->delete_nodes( static_cast<node*>( root ) );
-			}
+			
+			return inserted_node;
 		}
 		
 		
 		void delete_nodes(node* root)
 		{
-			if( ! this->tree->is_null( static_cast<tree_type::node*>( root ) ) )
+			if( ! this->tree->is_null( root ) )
 			{
-				this->delete_nodes( root->left() );
-				this->delete_nodes( root->right() );
+				this->delete_nodes( root->left_child() );
+				this->delete_nodes( root->right_child() );
 				this->a.destroy(root);
 				this->a.deallocate(root);
 			}
 		}
 		
+		
+		const node* lower_bound_node(const key_type& k) const
+		{
+			if( this->empty() ) return 0;
+			
+			const node* n = this->tree->root();
+			while( true )
+			{
+				if( this->comp( n->value.first, k ) )
+				{
+					if( this->tree->is_null( n->right ) )
+					{
+						// We have reached a leaf. k doesn't exist.
+						// But this leaf goes before k, so increment before returning
+						return n->next();
+					}
+					else
+					{
+						n = n->right_child();
+					}
+				}
+				else
+				{
+					if( this->tree->is_null( n->left ) )
+					{
+						// we have reached a leaf. k may or may not exist.
+						return n;
+					}
+					else
+					{
+						n = n->left_child();
+					}
+				}
+			}
+		}
+		
+		
+		const node* upper_bound_node(const key_type& k) const
+		{
+			const node* n = this->lower_bound_node(k);
+			while( ! this->tree->is_null(n) && ! this->comp(k, n->value.first) )
+			{
+				n = n->next();
+			}
+			return n;
+		}
+		
+		
+		dstd::pair<const node*, const node*> equal_range_nodes(const key_type& k) const
+		{
+			const node* lower = this->lower_bound_node(k);
+			const node* upper = lower;
+			while( ! this->tree->is_null(upper) && ! this->comp(k, upper->value.first) )
+			{
+				upper = upper->next();
+			}
+			return dstd::pair<const node*, const node*>(lower, upper);
+		}
 		
 		/// Returns true if the two keys are considered to be equivalent
 		bool keys_equal(const key_type& a, const key_type& b) const
@@ -548,13 +542,13 @@ class dstd::impl::map_base
 
 
 
-template < class Key, class T, class Compare, class Allocator >
-class dstd::impl::map_base< Key, T, Compare, Allocator >::value_compare
+template < class Key, class T, class Compare, class Allocator, bool AllowMultiple >
+class dstd::impl::map_base< Key, T, Compare, Allocator, AllowMultiple >::value_compare
 {
 	private:
 		
-		typedef typename dstd::map< Key, T, Compare, Allocator >::key_compare key_compare;
-		typedef typename dstd::map< Key, T, Compare, Allocator >::value_type value_type;
+		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator, AllowMultiple >::key_compare key_compare;
+		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator, AllowMultiple >::value_type value_type;
 		
 		const key_compare comp;
 		
@@ -569,45 +563,27 @@ class dstd::impl::map_base< Key, T, Compare, Allocator >::value_compare
 			return comp( a.first, b.first );
 		}
 	
-	friend class dstd::impl::map_base<Key, T, Compare, Allocator>;
+	friend class dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>;
 };
 
 
 
-template < class Key, class T, class Compare, class Allocator >
-class dstd::impl::map_base<Key, T, Compare, Allocator>::node : public dstd::map<Key, T, Compare, Allocator>::tree_type::node
+template < class Key, class T, class Compare, class Allocator, bool AllowMultiple >
+class dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>::iterator
 {
 	private:
 		
-		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator >::tree_type::node node_base;
-		
-	public:
-		
-		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator >::value_type value_type;
-		
-		node(const value_type& v)
-			: node_base(), value(v)
-		{}
-	
-		value_type value;
-};
-
-
-
-template < class Key, class T, class Compare, class Allocator >
-class dstd::impl::map_base<Key, T, Compare, Allocator>::iterator
-{
-	private:
-		
-		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator >::tree_type::node node_base;
-		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator >::node node;
+		typedef dstd::impl::binary_tree::node node_base;
+		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator, AllowMultiple >::tree_type::node node;
 		
 		
 	public:
 		
-		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator >::value_type value_type;
+		typedef typename dstd::impl::map_base< Key, T, Compare, Allocator, AllowMultiple >::value_type value_type;
 		typedef value_type* pointer;
 		typedef value_type& reference;
+		typedef typename dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>::size_type size_type;
+		typedef typename dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>::difference_type difference_type;
 		
 		
 		iterator()
@@ -706,7 +682,7 @@ class dstd::impl::map_base<Key, T, Compare, Allocator>::iterator
 		}
 		
 		
-	private:
+	//private:
 		
 		node_base* p;
 	
@@ -716,20 +692,22 @@ class dstd::impl::map_base<Key, T, Compare, Allocator>::iterator
 
 
 
-template <class Key, class T, class Compare, class Allocator>
-class dstd::impl::map_base<Key, T, Compare, Allocator>::const_iterator
+template <class Key, class T, class Compare, class Allocator, bool AllowMultiple>
+class dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>::const_iterator
 {
 	private:
 		
-		typedef const typename dstd::impl::map_base< Key, T, Compare, Allocator >::tree_type::node node_base;
-		typedef const typename dstd::impl::map_base< Key, T, Compare, Allocator >::node node;
+		typedef const typename dstd::impl::binary_tree::node node_base;
+		typedef const typename dstd::impl::map_base< Key, T, Compare, Allocator, AllowMultiple >::node node;
 		
 		
 	public:
 		
-		typedef const typename dstd::impl::map_base< Key, T, Compare, Allocator >::value_type value_type;
+		typedef const typename dstd::impl::map_base< Key, T, Compare, Allocator, AllowMultiple >::value_type value_type;
 		typedef const value_type* pointer;
 		typedef const value_type& reference;
+		typedef typename dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>::size_type size_type;
+		typedef typename dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>::difference_type difference_type;
 		
 		
 		const_iterator()
@@ -848,11 +826,11 @@ class dstd::impl::map_base<Key, T, Compare, Allocator>::const_iterator
 // dstd::map
 
 template < class Key, class T, class Compare = dstd::less<Key>, class Allocator = dstd::allocator<T> >
-class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator>
+class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator, false>
 {
 	private:
 	
-		typedef dstd::impl::map_base<Key, T, Compare, Allocator> map_base;
+		typedef dstd::impl::map_base<Key, T, Compare, Allocator, false> map_base;
 		typedef typename map_base::node node;
 	
 	public:
@@ -862,6 +840,8 @@ class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		typedef typename map_base::mapped_type mapped_type;
 		typedef typename map_base::key_compare key_compare;
 		typedef typename map_base::value_compare value_compare;
+		typedef typename map_base::size_type size_type;
+		typedef typename map_base::difference_type difference_type;
 		typedef typename map_base::allocator_type allocator_type;
 		typedef typename map_base::iterator iterator;
 		typedef typename map_base::const_iterator const_iterator;
@@ -882,7 +862,7 @@ class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		/// Constructs a map with as many elements as the range [first,last),
 		/// with each element constructed from its corresponding element in that range.
 		template <class InputIterator>
-		map(InputIterator first, InputIterator last,  const key_compare& compare = key_compare(), const allocator_type& alloc = allocator_type())
+		map(InputIterator first, InputIterator last, const key_compare& compare = key_compare(), const allocator_type& alloc = allocator_type())
 			: map_base(compare, alloc)
 		{
 			this->insert(first, last);
@@ -949,21 +929,9 @@ class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		/// and its second member set to true if a new element was inserted or false if an equivalent key already existed.
 		dstd::pair< iterator, bool > insert(const value_type& value)
 		{
-			node* n = this->get_node(value.first);
-			if( n == 0 )
-			{
-				n = this->insert_node(value, n);
-				return dstd::pair<iterator,bool>( iterator(n), true );
-			}
-			else if( this->keys_equal(n->value.first, value.first) )
-			{
-				return dstd::pair<iterator,bool>( iterator(n), false );
-			}
-			else
-			{
-				n = this->insert_node(value, n);
-				return dstd::pair<iterator,bool>( iterator(n), true );
-			}
+			size_type n = this->size();
+			iterator new_node = this->insert_node(value);
+			return dstd::pair<iterator, bool>( new_node, (n < this->size()) );
 		}
 		
 		
@@ -1002,51 +970,29 @@ class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		
 		
 		/// Exchanges the content of the container by the content of x, which is another map of the same type.
-		void swap(map& x)
-		{
-			dstd::swap( this->tree, x.tree );
-		}
+		void swap(map& x) { dstd::swap( this->tree, x.tree ); }
 		
 		
 		//
-		// Operations
+		// Lookup
 		
 		
 		/// Searches the container for an element with a key equivalent to k and returns an iterator to it if found,
 		/// otherwise it returns an iterator to map::end.
 		iterator find(const key_type& k)
 		{
-			node* n = this->get_node(k);
-			if( n != 0 && this->keys_equal(k, n->value.first) )
-			{
-				return iterator(n);
-			}
-			else
-			{
-				return this->end();
-			}
+			node* n = const_cast<node*>( this->find_node(k) );
+			return (n == 0) ? this->end() : iterator(n);
 		}
-		
-		
 		const_iterator find(const key_type& k) const
 		{
-			const node* n = this->get_node(k);
-			if( n != 0 && this->keys_equal(k, n->value.first) )
-			{
-				return const_iterator(n);
-			}
-			else
-			{
-				return this->end();
-			}
+			const node* n = this->find_node(k);
+			return (n == 0) ? this->end() : const_iterator(n);
 		}
 		
 		
 		/// Searches the container for elements with a key equivalent to k and returns the number of matches (1 or 0).
-		size_t count(const key_type& k) const
-		{
-			return (this->find(k) == this->end()) ? 0 : 1;
-		}
+		size_type count(const key_type& k) const { return (this->find(k) == this->end()) ? 0 : 1; }
 };
 
 
@@ -1072,11 +1018,11 @@ bool operator==(const dstd::map<Key,T>& a, const dstd::map<Key,T>& b)
 // dstd::multimap
 
 template < class Key, class T, class Compare = dstd::less<Key>, class Allocator = dstd::allocator<T> >
-class dstd::multimap : public dstd::impl::map_base<Key, T, Compare, Allocator>
+class dstd::multimap : public dstd::impl::map_base<Key, T, Compare, Allocator, true>
 {
 	private:
 	
-		typedef dstd::impl::map_base<Key, T, Compare, Allocator> map_base;
+		typedef dstd::impl::map_base<Key, T, Compare, Allocator, true> map_base;
 		typedef typename map_base::node node;
 	
 	public:
@@ -1086,6 +1032,8 @@ class dstd::multimap : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		typedef typename map_base::mapped_type mapped_type;
 		typedef typename map_base::key_compare key_compare;
 		typedef typename map_base::value_compare value_compare;
+		typedef typename map_base::size_type size_type;
+		typedef typename map_base::difference_type difference_type;
 		typedef typename map_base::allocator_type allocator_type;
 		typedef typename map_base::iterator iterator;
 		typedef typename map_base::const_iterator const_iterator;
@@ -1151,9 +1099,10 @@ class dstd::multimap : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		/// @returns An iterator to the newly inserted element.
 		iterator insert(const value_type& value)
 		{
-			node* n = this->find_insert_parent(value.first);
-			n = this->insert_node(value, n);
-			return iterator(n);
+			return iterator( this->insert_node(value) );
+			//node* n = this->find_insert_parent(value.first);
+			//n = this->insert_node(value, n);
+			//return iterator(n);
 		}
 		
 		
@@ -1199,41 +1148,25 @@ class dstd::multimap : public dstd::impl::map_base<Key, T, Compare, Allocator>
 		
 		
 		//
-		// Operations
+		// Lookup
 		
 		
 		/// Searches the container for an element with a key equivalent to k and returns an iterator to it if found,
 		/// otherwise it returns an iterator to map::end.
 		iterator find(const key_type& k)
 		{
-			node* n = this->get_node(k);
-			if( n != 0 && this->keys_equal(k, n->value.first) )
-			{
-				return iterator(n);
-			}
-			else
-			{
-				return this->end();
-			}
+			node* n = const_cast<node*>( this->find_node(k) );
+			return (n == 0) ? this->end() : iterator(n);
 		}
-		
-		
 		const_iterator find(const key_type& k) const
 		{
-			const node* n = this->get_node(k);
-			if( n != 0 && this->keys_equal(k, n->value.first) )
-			{
-				return const_iterator(n);
-			}
-			else
-			{
-				return this->end();
-			}
+			const node* n = this->find_node(k);
+			return (n == 0) ? this->end() : const_iterator(n);
 		}
 		
 		
 		/// Searches the container for elements with a key equivalent to k and returns the number of matches.
-		size_t count(const key_type& k) const
+		size_type count(const key_type& k) const
 		{
 			size_t n = 0;
 			const_iterator it = this->find(k);

@@ -662,7 +662,7 @@ int main()
 	
 	{
 		const int n = 10;
-		const double x = 3.14;
+		//const double x = 3.14;
 		dstd::multimap<int, double> m;
 		for(unsigned int i = 0; i < n; ++i)
 		{
@@ -693,7 +693,7 @@ int main()
 	
 	{
 		const int n = 10;
-		const double x = 3.14;
+		//const double x = 3.14;
 		dstd::multimap<int, double> m;
 		for(unsigned int i = 0; i < n; ++i)
 		{
@@ -719,7 +719,7 @@ int main()
 	
 	{
 		const int n = 10;
-		const double x = 3.14;
+		//const double x = 3.14;
 		dstd::multimap<int, double> m;
 		for(unsigned int i = 0; i < n; ++i)
 		{
