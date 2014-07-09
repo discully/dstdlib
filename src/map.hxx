@@ -682,7 +682,7 @@ class dstd::impl::map_base<Key, T, Compare, Allocator, AllowMultiple>::iterator
 		}
 		
 		
-	//private:
+	private:
 		
 		node_base* p;
 	
