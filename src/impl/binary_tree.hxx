@@ -45,13 +45,19 @@ class dstd::impl::binary_tree
 					return *this;
 				}
 				
+				void attach_child(node* child, bool left_child)
+				{
+					(left_child ? this->left : this->right) = child;
+					if( child != 0 ) child->up = this;
+				}
+				
 				bool is_header() const
 				{
 					// If the tree is empty, or has 1 node, then this check will be true:
 					if( this->left != 0 && this->right != 0 && this->left == this->right ) return true;
 					
 					// If there is more than one node in the tree:
-					if( ( this->right != 0  && this->right->left == this ) && ( this->left != 0 && this->left->right == this ) ) return false;
+					if( ( this->right != 0  && this->right->left == this ) && ( this->left != 0 && this->left->right == this ) ) return true;
 					
 					return false;
 				}
@@ -158,9 +164,7 @@ class dstd::impl::binary_tree
 		binary_tree()
 			: head( new node() ), n(0)
 		{
-			this->head->up = this->head;
-			this->head->left = this->head;
-			this->head->right = this->head;
+			this->reset();
 		}
 		
 		
@@ -172,7 +176,7 @@ class dstd::impl::binary_tree
 		
 		bool empty() const
 		{
-			return this->is_null( this->root() );
+			return (this->size() == 0);
 		}
 		
 		
@@ -184,24 +188,15 @@ class dstd::impl::binary_tree
 		{
 			if( this->is_null( parent ) )
 			{
-				new_node->up = this->head;
-				new_node->left = this->head;
-				new_node->right = this->head;
-				this->head->up = new_node;
-				this->head->left = new_node;
-				this->head->right = new_node;
+				this->set_root(new_node);
+				this->set_left_most(new_node);
+				this->set_right_most(new_node);
 				++(this->n);
 			}
 			else if( this->is_null( parent->left ) )			
 			{
-				new_node->up = parent;
-				parent->left = new_node;
-				
-				if( parent == this->left_most() )
-				{
-					new_node->left = this->head;
-					this->head->right = new_node;
-				}
+				parent->attach_child(new_node, true);
+				if( parent == this->left_most() ) this->set_left_most(new_node);
 				++(this->n);
 			}
 		}
@@ -211,24 +206,15 @@ class dstd::impl::binary_tree
 		{
 			if( this->is_null( parent ) )
 			{
-				new_node->up = this->head;
-				new_node->left = this->head;
-				new_node->right = this->head;
-				this->head->up = new_node;
-				this->head->left = new_node;
-				this->head->right = new_node;
+				this->set_root(new_node);
+				this->set_left_most(new_node);
+				this->set_right_most(new_node);
 				++(this->n);
 			}
 			else if( this->is_null( parent->right ) )
 			{
-				parent->right = new_node;
-				new_node->up = parent;
-				
-				if( parent == this->right_most() )
-				{
-					new_node->right = this->head;
-					this->head->left = new_node;
-				}
+				parent->attach_child(new_node, false);
+				if( parent == this->right_most() ) this->set_right_most(new_node);
 				++(this->n);
 			}
 		}
@@ -244,50 +230,55 @@ class dstd::impl::binary_tree
 		const node* left_most() const { return this->head->right; }
 		
 		
+		/// Removes a node from the tree.
+		/// Only nodes which do not have two children can be removed.
 		void remove(node* n)
 		{
 			if( this->is_null( n->left ) && this->is_null( n->right ) )
 			{
-				if( n->up->is_header() ) // removing the root node, leaving the tree empty
-				{
-					this->head->up = this->head;
-					this->head->left = this->head;
-					this->head->right = this->head;
-				}
-				else if( n == n->up->left )
-				{
-					n->up->left = n->left;
-				}
-				else
-				{
-					n->up->right = n->right;
-				}
+				// Removing a leaf-node (ie: one without any children)
 				
-				if( this->head->right == n ) this->head->right = n->up;
-				if( this->head->left == n ) this->head->left = n->up;
+				if( n == this->root() ) // removing the root node, leaving the tree empty
+				{
+					this->reset();
+				}
+				else // removing a regular leaf-node
+				{					
+					const bool left_child = (n == n->up->left);
+					
+					if( n == this->left_most() )
+					{
+						this->set_left_most( n->next() );
+					}
+					else if( left_child )
+					{
+						n->up->attach_child( 0, true );
+					}
+					
+					if( n == this->right_most() )
+					{
+						this->set_right_most( n->prev() );
+					}
+					else if( ! left_child )
+					{
+						n->up->attach_child( 0, false );
+					}
+				}
 				
 				--(this->n);
 			}
-			else if( ! this->is_null( n->left ) || ! this->is_null( n->right ) )
+			else if( this->is_null(n->left) != this->is_null(n->right) ) // != behaves like xor
 			{
-				node* child = this->is_null(n->left) ? n->right : n->left;
+				// n has exactly one child
+				node* child = this->is_null(n->right) ? n->left : n->right;
 				
-				if( this->head->right == n ) this->head->right = n->next();
-				if( this->head->left == n ) this->head->left = n->prev();
+				if( n == this->left_most()  ) this->set_left_most(  n->next() );
+				if( n == this->right_most() ) this->set_right_most( n->prev() );
+				if( n == this->root() ) this->set_root( child );
 				
-				child->up = n->up;
-				if( n->up->is_header() )
-				{
-					n->up->up = child;
-				}
-				else if( n->up->left == n )
-				{
-					n->up->left = child;
-				}
-				else
-				{
-					n->up->right = child;
-				}
+				if( child != this->root() ) n->up->attach_child(child, (n->up->left == n));
+				
+				--(this->n);
 			}
 		}
 		
@@ -316,7 +307,7 @@ class dstd::impl::binary_tree
 					const bool left_child = (n1->left == n2);
 					
 					// sort out the (non-header) things which point to n1 and n2	
-					if( ! this->is_null(n1->up) )
+					if( n1 != this->root() )
 					{
 						if     ( n1->up->left  == n1 ) n1->up->left  = n2;
 						else if( n1->up->right == n1 ) n1->up->right = n2;
@@ -384,13 +375,34 @@ class dstd::impl::binary_tree
 	
 	private:
 		
+		void reset()
+		{
+			this->head->up = this->head;
+			this->head->left = this->head;
+			this->head->right = this->head;
+		}
+		
+		void set_left_most(node* n)
+		{
+			this->head->right = n;
+			n->left = this->head;
+		}
+		
+		void set_right_most(node* n)
+		{
+			this->head->left = n;
+			n->right = this->head;
+		}
+		
+		void set_root(node* n)
+		{
+			this->head->up = n;
+			n->up = this->head;
+		}
+		
 		node* head;
 		size_type n;
 };
-
-
-
-
 
 
 
