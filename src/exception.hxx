@@ -39,6 +39,13 @@ namespace dstd
 		
 		virtual const char* what() const { return "dstd::length_error"; }
 	};
+	
+	class overflow_error : public exception
+	{
+		public:
+		
+		virtual const char* what() const { return "dstd::overflow_error"; }
+	};
 }
 
 #endif
