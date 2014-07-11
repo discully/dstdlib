@@ -66,8 +66,8 @@ namespace dstd
 				return false;
 			}
 		}
-		template <class T>
-		bool testLessThan(const std::string& test_name, const T& test_value, const T& expected_value)
+		template <class T1, class T2>
+		bool testLessThan(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
 			this->startTest(test_name);
 			if( test_value < expected_value )
@@ -81,8 +81,8 @@ namespace dstd
 				return false;
 			}
 		}
-		template <class T>
-		bool testGreaterThan(const std::string& test_name, const T& test_value, const T& expected_value)
+		template <class T1, class T2>
+		bool testGreaterThan(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
 			this->startTest(test_name);
 			if( test_value > expected_value )
@@ -96,8 +96,8 @@ namespace dstd
 				return false;
 			}
 		}
-		template <class T>
-		bool testLessThanOrEqual(const std::string& test_name, const T& test_value, const T& expected_value)
+		template <class T1, class T2>
+		bool testLessThanOrEqual(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
 			this->startTest(test_name);
 			if( test_value <= expected_value )
@@ -111,8 +111,8 @@ namespace dstd
 				return false;
 			}
 		}
-		template <class T>
-		bool testGreaterThanOrEqual(const std::string& test_name, const T& test_value, const T& expected_value)
+		template <class T1, class T2>
+		bool testGreaterThanOrEqual(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
 			this->startTest(test_name);
 			if( test_value >= expected_value )
