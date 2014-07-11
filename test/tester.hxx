@@ -10,7 +10,31 @@ namespace dstd
 	{
 		public:
 		
-		explicit Tester(std::string test_name) :n_fail(0), n_pass(0), name(test_name){}
+		explicit Tester(std::string test_name) :n_fail(0), n_pass(0), name(test_name), current_test("") {}
+		
+		void startTest(const std::string& test_name)
+		{
+			this->current_test = test_name;
+		}
+		
+		void testPassed()
+		{
+			this->pass();
+			std::cout << "[      ] " << this->current_test << std::endl;
+			this->endTest();
+		}
+		
+		void testFailed(const std::string& message = "")
+		{
+			this->fail()
+			std::cout << "[FAILED] " << this->current_test << ( (message != "") ? " : " : "" ) << message << std::endl;
+			this->endTest();
+		}
+		
+		void endTest()
+		{
+			this->current_test = "";
+		}
 		
 		template <class T1, class T2>
 		bool testEqual(const std::string& test_name, const T1& test_value, const T2& expected_value)
@@ -144,6 +168,7 @@ namespace dstd
 		unsigned int n_fail;
 		unsigned int n_pass;
 		const std::string name;
+		std::string current_test;
 	};
 }
 
