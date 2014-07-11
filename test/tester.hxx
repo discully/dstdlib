@@ -26,7 +26,7 @@ namespace dstd
 		
 		void testFailed(const std::string& message = "")
 		{
-			this->fail()
+			this->fail();
 			std::cout << "[FAILED] " << this->current_test << ( (message != "") ? " : " : "" ) << message << std::endl;
 			this->endTest();
 		}
@@ -39,109 +39,105 @@ namespace dstd
 		template <class T1, class T2>
 		bool testEqual(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
+			this->startTest(test_name);
 			if( test_value == expected_value )
 			{
-				std::cout << "[PASSED] " << test_name << std::endl;
-				return this->pass();
+				this->testPassed();
+				return true;
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << std::endl; //" Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
-				return this->fail();
+				this->testFailed("value did not equal expected");
+				return false;
 			}
 		}
 		template <class T1, class T2>
 		bool testNotEqual(const std::string& test_name, const T1& test_value, const T2& expected_value)
 		{
+			this->startTest(test_name);
 			if( test_value != expected_value )
 			{
-				std::cout << "[PASSED] " << test_name << std::endl;
-				this->pass();
+				this->testPassed();
 				return true;
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << std::endl; //" Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
-				this->fail();
+				this->testFailed("value was equal to expected");
 				return false;
 			}
 		}
 		template <class T>
 		bool testLessThan(const std::string& test_name, const T& test_value, const T& expected_value)
 		{
+			this->startTest(test_name);
 			if( test_value < expected_value )
 			{
-				std::cout << "[PASSED] " << test_name << std::endl;
-				this->pass();
+				this->testPassed();
 				return true;
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << " Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
-				this->fail();
+				this->testFailed("value was not less than expected");
 				return false;
 			}
 		}
 		template <class T>
 		bool testGreaterThan(const std::string& test_name, const T& test_value, const T& expected_value)
 		{
+			this->startTest(test_name);
 			if( test_value > expected_value )
 			{
-				std::cout << "[PASSED] " << test_name << std::endl;
-				this->pass();
+				this->testPassed();
 				return true;
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << " Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
-				this->fail();
+				this->testFailed("value was not greater than expected");
 				return false;
 			}
 		}
 		template <class T>
 		bool testLessThanOrEqual(const std::string& test_name, const T& test_value, const T& expected_value)
 		{
+			this->startTest(test_name);
 			if( test_value <= expected_value )
 			{
-				std::cout << "[PASSED] " << test_name << std::endl;
-				this->pass();
+				this->testPassed();
 				return true;
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << " Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
-				this->fail();
+				this->testFailed("value was greater than expected");
 				return false;
 			}
 		}
 		template <class T>
 		bool testGreaterThanOrEqual(const std::string& test_name, const T& test_value, const T& expected_value)
 		{
+			this->startTest(test_name);
 			if( test_value >= expected_value )
 			{
-				std::cout << "[PASSED] " << test_name << std::endl;
-				this->pass();
+				this->testPassed();
 				return true;
 			}
 			else
 			{
-				std::cout << "[FAILED] " << test_name << " Value(" << test_value << ") Expected(" << expected_value << ")" << std::endl;
-				this->fail();
+				this->testFailed("value was less than expected");
 				return false;
 			}
 		}
 		
 		bool registerTestFailed(const std::string& test_name, const std::string& message = "")
 		{
-			std::cout << "[FAILED] " << test_name << " " << message << std::endl;
-			this->fail();
+			this->startTest(test_name);
+			this->testFailed(message);
 			return false;
 		}
 		
 		bool registerTestPassed(const std::string& test_name)
 		{
-			std::cout << "[PASSED] " << test_name << std::endl;
-			this->pass();
+			this->startTest(test_name);
+			this->testPassed();
 			return true;
 		}
 		
