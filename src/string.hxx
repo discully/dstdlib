@@ -34,8 +34,8 @@ class dstd::char_traits
 		
 		typedef Character char_type;
 		typedef unsigned long int int_type;
-		//typedef off_type;
-		//typedef pos_type;
+		typedef long long off_type;
+		typedef unsigned long long pos_type;
 		//typedef state_type;
 		
 		
@@ -166,6 +166,7 @@ class dstd::char_traits
 		
 		
 		/// Checks whether two values of type int_type are equal.
+		/// \returns true if i1 and i2 are equal, or false otherwise.
 		static bool eq_int_type(int_type i1, int_type i2)
 		{
 			return char_traits::eq( char_traits::to_char_type(i1), char_traits::to_char_type(i2) );
@@ -173,7 +174,11 @@ class dstd::char_traits
 		
 		
 		/// Checks whether e is not equivalent to eof value.
-		// TODO: static int_type not_eof( int_type e );
+		/// \returns e if it is not eof, or some value other than e or eof otherwise.
+		static int_type not_eof( int_type e )
+		{
+			return ( (e == char_traits::eof()) ? -1 : e );
+		}
 };
 
 
@@ -956,6 +961,23 @@ bool operator== ( const dstd::basic_string<Character, Traits, Allocator>& lhs, c
 {
 	return ( (lhs.length() == rhs.length()) && (lhs.compare(rhs) == 0) );
 }
+
+
+template <class Character, class Traits, class Allocator>
+bool operator== ( const Character* lhs, const dstd::basic_string<Character, Traits, Allocator>& rhs )
+{
+	return rhs.compare(lhs);
+}
+
+
+template <class Character, class Traits, class Allocator>
+bool operator== ( const dstd::basic_string<Character, Traits, Allocator>& lhs, const Character* rhs )
+{
+	return lhs.compare(rhs);
+}
+
+
+// todo: more comparison operators
 
 
 
