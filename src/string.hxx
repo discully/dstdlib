@@ -966,14 +966,14 @@ bool operator== ( const dstd::basic_string<Character, Traits, Allocator>& lhs, c
 template <class Character, class Traits, class Allocator>
 bool operator== ( const Character* lhs, const dstd::basic_string<Character, Traits, Allocator>& rhs )
 {
-	return rhs.compare(lhs);
+	return ( rhs.compare(lhs) == 0 );
 }
 
 
 template <class Character, class Traits, class Allocator>
 bool operator== ( const dstd::basic_string<Character, Traits, Allocator>& lhs, const Character* rhs )
 {
-	return lhs.compare(rhs);
+	return ( lhs.compare(rhs) == 0 );
 }
 
 
