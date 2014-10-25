@@ -39,24 +39,25 @@ class dstd::basic_streambuf
 		
 		
 		/// Changes the associated locale.
-		/// Calls imbue of the most derived class.
+		/// \note Calls imbue(const dstd::locale&) of the most derived class.
 		dstd::locale pubimbue(const dstd::locale& new_locale)
 		{
-			const dstd::locale old = this->getloc();
+			const dstd::locale old_loc = this->getloc();
 			this->loc = new_locale;
 			this->imbue(this->loc);
-			return old;
+			return old_loc;
 		}
 		
 		
-		/// Returns the associated locale. 
+		/// Returns the locale associated with this buffer.
 		dstd::locale getloc() const { return this->loc; }
 		
 		
 		// Positioning
 		
 		
-		/// Calls setbuf(s, n) of the most derived class
+		/// Classes may allow replacement of the controlled character sequence (the buffer) with a user-provided array.
+		/// \note Calls setbuf(char_type*, dstd::streamsize) of the most derived class
 		basic_streambuf* pubsetbuf(char_type* s, dstd::streamsize n)
 		{
 			return this->setbuf(s, n);
@@ -64,7 +65,10 @@ class dstd::basic_streambuf
 		
 		
 		/// Sets the position indicator of the input and/or output sequence relative to some other position.
-		/// Calls seekoff(off, dir, which) of the most derived class
+		/// \param off The offset from \p dir to which the stream position should be set.
+		/// \param dir The position in the stream relative to which \p off is measured.
+		/// \param which Specifies whether the input, output or both positions of the stream should be set.
+		/// \note Calls seekoff(off_type,ios_base::seekdir,ios_base::openmode) of the most derived class.
 		pos_type pubseekoff(off_type off, ios_base::seekdir dir, ios_base::openmode which = ios_base::in | ios_base::out)
 		{
 			return this->seekoff(off, dir, which);
@@ -72,15 +76,17 @@ class dstd::basic_streambuf
 		
 		
 		/// Sets the position indicator of the input and/or output sequence to an absolute position. 
-		/// Calls seekpos(pos, which) of the most derived class 
-		pos_type pubseekpos(pos_type pos, dstd::ios_base::openmode which = dstd::ios_base::in | dstd::ios_base::out )
+		/// \param pos The absolute position to which the stream should be set.
+		/// \param which Specifies whether the input, output or both positions of the stream should be set.
+		/// \note Calls seekpos(pos_type,dstd::ios_base::openmode) of the most derived class.
+		pos_type pubseekpos(pos_type pos, dstd::ios_base::openmode which = dstd::ios_base::in | dstd::ios_base::out)
 		{
 			return this->seekpos(pos, which);
 		}
 		
 		
 		/// Synchronizes the controlled character sequence (the buffers) with the associated character sequence. 
-		/// Calls sync() of the most derived class.
+		/// \note Calls sync() of the most derived class.
 		int pubsync()
 		{
 			return this->sync();
@@ -93,7 +99,7 @@ class dstd::basic_streambuf
 		/// Returns the number of characters available to read.
 		dstd::streamsize in_avail()
 		{
-			if( this->gptr() && this->gptr() < this->egptr() )
+			if( this->gptr() != 0 && this->gptr() < this->egptr() )
 			{
 				return (this->egptr() - this->gptr());
 			}
@@ -104,7 +110,7 @@ class dstd::basic_streambuf
 		}
 		
 		
-		/// Advances the input sequence by one character and reads one character.
+		/// Advances the input sequence, then reads one character without advancing again.
 		int_type snextc()
 		{
 			if( this->sbumpc() != traits_type::eof() )
@@ -118,13 +124,15 @@ class dstd::basic_streambuf
 		}
 		
 		
-		/// Reads one character and advances the input sequence by one character. 
+		/// Reads one character from the input sequence and advances the sequence.
+		/// \returns The next character in the input sequence.
 		int_type sbumpc()
 		{
 			if( this->gptr() < this->egptr() )
 			{
 				const int_type result = this->sgetc();
 				this->gbump(1);
+				return result;
 			}
 			else
 			{
@@ -133,7 +141,8 @@ class dstd::basic_streambuf
 		}
 		
 		
-		/// Reads one character from the input sequence.
+		/// Reads one character from the input sequence without advancing the sequence.
+		/// \returns The next character in the input sequence.
 		int_type sgetc()
 		{
 			if( this->gptr() < this->egptr() )
@@ -147,7 +156,11 @@ class dstd::basic_streambuf
 		}
 		
 		
+		/// Reads characters from the input sequence to a character array.
 		/// Calls xsgetn(s, count) of the most derived class.
+		/// \param s An array sufficient in size to store at least \p count characters.
+		/// \param count The maximum number of characters to read.
+		/// \returns The number of characters successfully read.
 		dstd::streamsize sgetn(char_type* s, dstd::streamsize count)
 		{
 			return this->xsgetn(s, count);
@@ -157,14 +170,15 @@ class dstd::basic_streambuf
 		// Put Area
 		
 		
-		/// Writes one character to the output sequence.
+		/// Writes one character to the put area and advances the current pointer.
 		/// \param c The character to be written to the output sequence.
-		/// \returns The integer representation of the character on success, or traits_type::eof() otherwise.
+		/// \returns The integer representation of \p c on success, or traits_type::eof() on failure.
 		int_type sputc(char_type c)
 		{
 			if( this->pptr() < this->epptr() )
 			{
 				*(this->pptr()) = c;
+				this->pbump(1);
 				return traits_type::to_int_type(c);
 			}
 			else
@@ -174,7 +188,11 @@ class dstd::basic_streambuf
 		}
 		
 		
-		/// Calls xsputn(s, count) of the most derived class.
+		/// Writes characters from an array to the output sequence.
+		/// Writing stops when either \p count characters are written or a call to sputc() would have returned Traits::eof().
+		/// \note Calls xsputn() of the most derived class.
+		/// \param s Character array of at least \p count size holding the characters to be written.
+		/// \param count The maximum number of characters available to be written.
 		dstd::streamsize sputn(const char_type* s, dstd::streamsize count)
 		{
 			return this->xsputn(s, count);
@@ -202,7 +220,8 @@ class dstd::basic_streambuf
 		/// If a putback position is available in the get area (gptr() > eback()),
 		/// then decrements the next pointer (gptr()) and returns the character it now points to.
 		/// If a putback position is not available, then calls pbackfail() to back up the input sequence if possible.
-		/// The I/O stream function basic_istream::unget is implemented in terms of this function. 
+		/// The I/O stream function basic_istream::unget is implemented in terms of this function.
+		/// \returns The new current character on success, of traits_type::eof() on failure.
 		int_type sungetc()
 		{
 			if( this->gptr() > this->eback() )
@@ -220,6 +239,9 @@ class dstd::basic_streambuf
 	protected:
 		
 		
+		/// Constructor
+		/// Protected so that no instance of basic_streambuf can be constructed, just
+		/// instances of derived classes.
 		basic_streambuf()
 			: get_begin(0), get_current(0), get_end(0), put_begin(0), put_current(0), put_end(0), loc(dstd::locale())
 		{}
@@ -282,19 +304,18 @@ class dstd::basic_streambuf
 		}
 		
 		
-		/// Ensures that at least one character is available in the input area
-		/// by updating the pointers to the input area (if needed) and reading more data
-		/// in from the input sequence (if applicable).
-		/// \returns The value which is at the current get pointer, or traits_type::eof() on failure.
+		/// Ensures that, if possible, there is at least one character available to read from the input area.
+		/// Updates input pointers (if needed) and reads more data in from the input sequence (if applicable).
+		/// \note The base class version of this function just fails.
+		/// \returns The next character in the input sequence on success, or traits_type::eof() on failure.
 		virtual int_type underflow()
 		{
 			return traits_type::eof();
 		}
 		
 		
-		/// Ensures that at least one character is available in the input area
-		/// by updating the pointers to the input area (if needed).
-		/// \returns The value which was pointed to by gptr before it was advanced, or traits_type::eof() ion failure.
+		/// Reads a character from the input sequence.
+		/// \returns The next input character on success, or traits_type::eof() on failure.
 		virtual int_type uflow()
 		{
 			const int_type result = this->underflow();
@@ -306,12 +327,10 @@ class dstd::basic_streambuf
 		}
 		
 		
-		/// Reads count characters from the input sequence and stores them into a character array pointed to by s.
-		/// The characters are read as if by repeated calls to sbumpc().
-		/// That is, if less than count characters are immediately available,
-		/// the function calls uflow() to provide more until traits::eof() is returned.
-		/// \param s An array sufficient in size to store at least count characters.
-		/// \param count The maximum number of characters to read.
+		/// Reads characters from the input sequence into a character array.
+		/// Up to \p count characters are read if possible, or until traits_type::eof() is encountered.
+		/// \param s An array sufficient in size to store at least \p count characters.
+		/// \param count The maximum number of characters to read into the array.
 		/// \returns The number of characters successfully read.
 		virtual dstd::streamsize xsgetn(char_type* s, dstd::streamsize count)
 		{
@@ -383,10 +402,7 @@ class dstd::basic_streambuf
 			{
 				result = this->sputc(s[i]);
 				
-				if( result == traits_type::eof() )
-				{
-					return i;
-				}
+				if( result == traits_type::eof() ) return i;
 				
 				this->pbump(1);
 			}

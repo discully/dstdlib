@@ -233,6 +233,45 @@ class dstd::ios_base
 };
 
 
+
+// Have declared the flags, now need to define them:
+// Format flags
+const dstd::ios_base::fmtflags dstd::ios_base::internal;
+const dstd::ios_base::fmtflags dstd::ios_base::left;
+const dstd::ios_base::fmtflags dstd::ios_base::right;
+const dstd::ios_base::fmtflags dstd::ios_base::dec;
+const dstd::ios_base::fmtflags dstd::ios_base::hex;
+const dstd::ios_base::fmtflags dstd::ios_base::oct;
+const dstd::ios_base::fmtflags dstd::ios_base::fixed;
+const dstd::ios_base::fmtflags dstd::ios_base::scientific;
+const dstd::ios_base::fmtflags dstd::ios_base::boolalpha;
+const dstd::ios_base::fmtflags dstd::ios_base::showbase;
+const dstd::ios_base::fmtflags dstd::ios_base::showpoint;
+const dstd::ios_base::fmtflags dstd::ios_base::showpos;
+const dstd::ios_base::fmtflags dstd::ios_base::skipws;
+const dstd::ios_base::fmtflags dstd::ios_base::unitbuf;
+const dstd::ios_base::fmtflags dstd::ios_base::uppercase;
+const dstd::ios_base::fmtflags dstd::ios_base::adjustfield;
+const dstd::ios_base::fmtflags dstd::ios_base::basefield;
+const dstd::ios_base::fmtflags dstd::ios_base::floatfield;
+// State flags
+const dstd::ios_base::iostate dstd::ios_base::eofbit;
+const dstd::ios_base::iostate dstd::ios_base::failbit;
+const dstd::ios_base::iostate dstd::ios_base::badbit;
+const dstd::ios_base::iostate dstd::ios_base::goodbit;
+// Open mode flags
+const dstd::ios_base::openmode dstd::ios_base::app;
+const dstd::ios_base::openmode dstd::ios_base::ate;
+const dstd::ios_base::openmode dstd::ios_base::binary;
+const dstd::ios_base::openmode dstd::ios_base::in;
+const dstd::ios_base::openmode dstd::ios_base::out;
+const dstd::ios_base::openmode dstd::ios_base::trunc;
+// Seek direction
+const dstd::ios_base::seekdir dstd::ios_base::beg;
+const dstd::ios_base::seekdir dstd::ios_base::cur;
+const dstd::ios_base::seekdir dstd::ios_base::end;
+
+
 /*
 template <class Character, class Traits = dstd::char_traits<Character> >
 class dstd::basic_ios : public dstd::ios_base
