@@ -10,9 +10,9 @@
 
 namespace dstd
 {
-	template <class Character, class Traits> class basic_streambuf;
-	typedef basic_streambuf<char, dstd::char_traits<char> > streambuf;
-	//typedef basic_streambuf<wchar_t> wstreambuf;
+	template <class Character, class Traits= dstd::char_traits<Character> > class basic_streambuf;
+	typedef basic_streambuf<char> streambuf;
+	typedef basic_streambuf<wchar_t> wstreambuf;
 	
 	// stuff I don't want to implement myself
 	typedef std::locale locale;
@@ -21,7 +21,7 @@ namespace dstd
 
 
 
-template <class Character, class Traits = dstd::char_traits<Character> >
+template <class Character, class Traits>
 class dstd::basic_streambuf
 {
 	public:
