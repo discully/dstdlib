@@ -10,41 +10,117 @@ std::ostream& operator<< (std::ostream& stream, const dstd::string& s)
 }
 
 
+template <class Character> class Defaults;
 
-int main()
+
+template <>
+class Defaults<char>
 {
-	dstd::Tester t("<string>");
+	public:
+		typedef dstd::string string_type;
+		string_type sc() { return string_type("P"); }
+		string_type s0() { return string_type(); }
+		string_type s1() { return string_type("Make"); }
+		string_type s2() { return string_type(" it"); }
+		string_type s3() { return string_type(" so!"); }
+		string_type s()  { return string_type("Make it so!"); }
+		string_type ss() { return string_type("Make it so!Make it so!"); }
+		string_type s2b() { return string_type("it"); }
+		string_type s3b() { return string_type(" so"); }
+		string_type st1() { return string_type("Makeit so!"); }
+		string_type st2() { return string_type("ake it so!"); }
+		string_type st3bcde () { return string_type("bcde");}
+		string_type st3bcd  () { return string_type("bcd"); }
+		string_type st3abcd () { return string_type("abcd");}
+		string_type st3abc  () { return string_type("abc"); }
+		string_type st3ab   () { return string_type("ab");  }
+		string_type st3zero () { return string_type("");    }
+		char cc() { return 'P'; }
+		const char* c0() { static const char ca[] = {'\0'}; return ca; }
+		const char* c1() { static const char ca[] = {'M','a','k','e','\0'}; return ca; }
+		const char* c2() { static const char ca[] = {' ','i','t','\0'}; return ca; }
+		const char* c3() { static const char ca[] = {' ','s','o','!','\0'}; return ca; }
+		const char* c () { static const char ca[] = {'M','a','k','e',' ','i','t',' ','s','o','!','\0'}; return ca; }
+		size_t len1() { return 4; }
+		size_t len2() { return 3; }
+		size_t len3() { return 4; }
+		size_t len()  { return this->len1() + this->len2() + this->len3(); }
+};
+
+template <>
+class Defaults<wchar_t>
+{
+	public:
+		typedef dstd::wstring string_type;
+		string_type sc() { return string_type(L"P"); }
+		string_type s0() { return string_type(); }
+		string_type s1() { return string_type(L"Make"); }
+		string_type s2() { return string_type(L" it"); }
+		string_type s3() { return string_type(L" so!"); }
+		string_type s()  { return string_type(L"Make it so!"); }
+		string_type ss() { return string_type(L"Make it so!Make it so!"); }
+		string_type s2b() { return string_type(L"it"); }
+		string_type s3b() { return string_type(L" so"); }
+		string_type st1() { return string_type(L"Makeit so!"); }
+		string_type st2() { return string_type(L"ake it so!"); }
+		string_type st3bcde () { return string_type(L"bcde");}
+		string_type st3bcd  () { return string_type(L"bcd"); }
+		string_type st3abcd () { return string_type(L"abcd");}
+		string_type st3abc  () { return string_type(L"abc"); }
+		string_type st3ab   () { return string_type(L"ab");  }
+		string_type st3zero () { return string_type(L"");    }
+		wchar_t cc() { return L'P'; }
+		const wchar_t* c0() { static const wchar_t ca[] = {L'\0'}; return ca; }
+		const wchar_t* c1() { static const wchar_t ca[] = {L'M',L'a',L'k',L'e',L'\0'}; return ca; }
+		const wchar_t* c2() { static const wchar_t ca[] = {L' ',L'i',L't',L'\0'}; return ca; }
+		const wchar_t* c3() { static const wchar_t ca[] = {L' ',L's',L'o',L'!',L'\0'}; return ca; }
+		const wchar_t* c () { static const wchar_t ca[] = {L'M',L'a',L'k',L'e',L' ',L'i',L't',L' ',L's',L'o',L'!',L'\0'}; return ca; }
+		size_t len1() { return 4; }
+		size_t len2() { return 3; }
+		size_t len3() { return 4; }
+		size_t len()  { return this->len1() + this->len2() + this->len3(); }
+};
+
+
+
+template <class Character>
+void testString(dstd::Tester& t)
+{
+	//dstd::Tester t("<string>");
+	Defaults<Character> defaults;
+	typedef Character char_type;
+	typedef typename Defaults<Character>::string_type string_type;
 	
-	const dstd::string sc("P");
-	const dstd::string s0;
-	const dstd::string s1("Make");
-	const dstd::string s2(" it");
-	const dstd::string s3(" so!");
-	const dstd::string s("Make it so!");
-	const dstd::string ss("Make it so!Make it so!");
+	const string_type sc = defaults.sc();
+	const string_type s0 = defaults.s0();
+	const string_type s1 = defaults.s1();
+	const string_type s2 = defaults.s2();
+	const string_type s3 = defaults.s3();
+	const string_type s = defaults.s();
+	const string_type ss = defaults.ss();
 	
-	const dstd::string s2b("it");
-	const dstd::string s3b(" so");
+	const string_type s2b = defaults.s2b();
+	const string_type s3b = defaults.s3b();
 	
-	const char cc('P');
-	const char c0[] = {'\0'};
-	const char c1[] = {'M','a','k','e','\0'};
-	const char c2[] = {' ','i','t','\0'};
-	const char c3[] = {' ','s','o','!','\0'};
-	const char c[] =  {'M','a','k','e',' ','i','t',' ','s','o','!','\0'};
+	const Character cc = defaults.cc();
+	const Character* c0 = defaults.c0();
+	const Character* c1 = defaults.c1();
+	const Character* c2 = defaults.c2();
+	const Character* c3 = defaults.c3();
+	const Character* c =  defaults.c();
 	
-	const size_t len1 = 4;
-	const size_t len2 = 3;
-	const size_t len3 = 4;
-	const size_t len = len1 + len2 + len3;
+	const size_t len1 = defaults.len1();
+	const size_t len2 = defaults.len2();
+	const size_t len3 = defaults.len3();
+	const size_t len = defaults.len();
 	
-	std::cout << s << std::endl;
-	std::cout << c << std::endl;
+	//std::cout << s << std::endl;
+	//std::cout << c << std::endl;
 	
 	// operator=
 	
 	{
-		dstd::string x;
+		string_type x;
 		
 		// operator= (string)
 		
@@ -71,7 +147,7 @@ int main()
 	// assign
 	
 	{
-		dstd::string x;
+		string_type x;
 		
 		// basic_string& assign(size_type count, Character c)
 		
@@ -96,13 +172,13 @@ int main()
 		x.assign(s, 0, 0);
 		t.testEqual("string::assign(string,size,size) 0", x, s0);
 		
-		x.assign(s, 0, dstd::string::npos);
+		x.assign(s, 0, string_type::npos);
 		t.testEqual("string::assign(string,size,size) 1", x, s);
 		
 		x.assign(s, len1, len2);
 		t.testEqual("string::assign(string,size,size) 2", x, s2);
 		
-		t.startTest("string:;assign(string,size,size) 3");
+		t.startTest("string::assign(string,size,size) 3");
 		try { x.assign(s1, len1+2, len1); t.testFailed("No exception was thrown"); }
 		catch( dstd::out_of_range& e ) { t.testPassed(); }
 		catch( ... ) { t.testFailed("The wrong exception was thrown"); }
@@ -136,16 +212,16 @@ int main()
 	// at
 	
 	t.startTest("string::at 1");
-	try { char xc = s.at(len + 3); ++xc; t.testFailed("No exception was thrown"); }
+	try { Character xc = s.at(len + 3); ++xc; t.testFailed("No exception was thrown"); }
 	catch( dstd::out_of_range& e ) { t.testPassed(); }
 	catch( ... ) { t.testFailed("A wrong exception was thrown"); }
 	
 	t.testEqual("string::at 2", s.at(len/2), c[len/2]);
 	
 	{
-		const char xc = 'X';
+		const Character xc = 'X';
 		const size_t i = 4;
-		dstd::string x(s);
+		string_type x(s);
 		x.at(i) = xc;
 		t.testEqual("string::at 3", x.at(i), xc);
 	}
@@ -153,15 +229,15 @@ int main()
 	// operator[]
 	
 	t.startTest("string::operator[] 1");
-	try { char xc = s[len + 3]; ++xc; t.testPassed(); }
+	try { Character xc = s[len + 3]; ++xc; t.testPassed(); }
 	catch( ... ) { t.testFailed("An exception was thrown"); }
 	
 	t.testEqual("string::operator[] 2", s[len/2], c[len/2]);
 	
 	{
-		const char xc = 'X';
+		const Character xc = 'X';
 		const size_t i = 4;
-		dstd::string x(s);
+		string_type x(s);
 		x[i] = xc;
 		t.testEqual("string::operator[] 3", x.at(i), xc);
 	}
@@ -213,11 +289,11 @@ int main()
 	// clear
 	
 	{
-		dstd::string x0;
+		string_type x0;
 		x0.clear();
 		t.testEqual("string::clear 1", x0, s0);
 		
-		dstd::string x1(s);
+		string_type x1(s);
 		x1.clear();
 		t.testEqual("string::clear 1", x1, s0);
 	}
@@ -225,19 +301,19 @@ int main()
 	// insert
 	
 	{
-		const dstd::string make_so(s1 + s3);
-		dstd::string x;
+		const string_type make_so(s1 + s3);
+		string_type x;
 		
 		// basic_string& insert(size_type index, size_type count, Character c)
 		
 		x = make_so;
 		t.startTest("string::insert(size,size,char) 1");
-		try { x.insert(x.length()+2, 0, 'X'); t.testFailed("No exception was thrown"); }
+		try { x.insert(x.length()+2, 0, char_type('X')); t.testFailed("No exception was thrown"); }
 		catch( dstd::out_of_range& e ) { t.testPassed(); }
 		catch( ... ) { t.testFailed("A wrong exception was thrown"); }
 		
 		x = make_so;
-		x.insert(len1, 0, 'X');
+		x.insert(len1, 0, char_type('X'));
 		t.testEqual("string::insert(size,size,char) 1", x, make_so);
 		
 		x.insert(len1, 1, ' ');
@@ -316,7 +392,7 @@ int main()
 		t.testEqual("string::insert(size,string,size,size) 5", x, s);
 		
 		x = make_so;
-		x.insert(len1, s2, 0, dstd::string::npos);
+		x.insert(len1, s2, 0, string_type::npos);
 		t.testEqual("string::insert(size,string,size,size) 6", x, s);
 		
 		// basic_string& insert(iterator pos, Character c)
@@ -345,7 +421,7 @@ int main()
 	// erase
 	
 	{
-		dstd::string x;
+		string_type x;
 		
 		// basic_string& erase (size_type index = 0, size_type count = basic_string::npos)
 		
@@ -354,7 +430,7 @@ int main()
 		t.testEqual("string::erase(size,size) 0", x, s);
 		
 		x = s;
-		x.erase(len1, dstd::string::npos);
+		x.erase(len1, string_type::npos);
 		t.testEqual("string::erase(size,size) 1", x, s1);
 		
 		x = s;
@@ -366,7 +442,7 @@ int main()
 		t.testEqual("string::erase(size,size) 4", x, s0);
 		
 		x = s;
-		x.erase(0, dstd::string::npos);
+		x.erase(0, string_type::npos);
 		t.testEqual("string::erase(size,size) 5", x, s0);
 		
 		x = s;
@@ -381,11 +457,11 @@ int main()
 		
 		x = s;
 		x.erase(x.begin() + len1);
-		t.testEqual("string::erase(it) 1", x, dstd::string("Makeit so!") );
+		t.testEqual("string::erase(it) 1", x, defaults.st1() );
 		
 		x = s;
 		x.erase(x.begin());
-		t.testEqual("string::erase(it) 2", x, dstd::string("ake it so!") );
+		t.testEqual("string::erase(it) 2", x, defaults.st2() );
 		
 		// iterator erase(iterator first, iterator last)
 		
@@ -399,7 +475,7 @@ int main()
 		
 		x = s;
 		x.erase(x.begin() + len1, x.begin() + len1 + len2);
-		t.testEqual("string::erase(it,it) 3", x, dstd::string(s1+s3));
+		t.testEqual("string::erase(it,it) 3", x, string_type(s1+s3));
 		
 		x = s;
 		x.erase(x.begin() + 1, x.begin() + 1);
@@ -409,7 +485,7 @@ int main()
 	// push_back
 	
 	{
-		dstd::string x(s3b);
+		string_type x(s3b);
 		x.push_back('!');
 		t.testEqual("string::push_back", x, s3);
 	}
@@ -417,7 +493,7 @@ int main()
 	//append
 	
 	{
-		dstd::string x;
+		string_type x;
 		
 		// basic_string& append(size_type count, Character c)
 		
@@ -426,7 +502,7 @@ int main()
 		t.testEqual("string::append(size,char) 1", x, s3);
 		
 		x = s;
-		x.append(0, 'x');
+		x.append(0, char_type('x'));
 		t.testEqual("string::append(size,char) 2", x, s);
 		
 		// basic_string& append(const basic_string& s)
@@ -458,7 +534,7 @@ int main()
 		t.testEqual("string::append(string,size,size) 3", x, s1);
 		
 		x = s;
-		x.append(x, 0, dstd::string::npos);
+		x.append(x, 0, string_type::npos);
 		t.testEqual("string::append(string,size,size) 4", x, ss);
 		
 		// basic_string& append(const Character* s, size_type count)
@@ -507,7 +583,7 @@ int main()
 	// operator+=
 	
 	{
-		dstd::string x;
+		string_type x;
 		
 		// basic_string& operator+= (const basic_string& s)
 		
@@ -549,12 +625,12 @@ int main()
 	// compare
 	
 	{
-		const dstd::string bcde = "bcde";
-		const dstd::string bcd =  "bcd";
-		const dstd::string abcd = "abcd";
-		const dstd::string abc =  "abc";
-		const dstd::string ab =   "ab";
-		const dstd::string zero =  "";
+		const string_type bcde = defaults.st3bcde();
+		const string_type bcd  = defaults.st3bcd();
+		const string_type abcd = defaults.st3abcd();
+		const string_type abc  = defaults.st3abc();
+		const string_type ab   = defaults.st3ab();
+		const string_type zero = defaults.st3zero();
 		
 		// int compare(const basic_string& s) const
 		
@@ -622,7 +698,18 @@ int main()
 		t.testEqual("string::compare(size,size,char*,size) 4", abc.compare(0, 3, abcd.data()+1, 3), -1);
 		t.testEqual("string::compare(size,size,char*,size) 5", abc.compare(2, 2, abcd.data(), 3),  1);
 	}
+}
+
+
+int main()
+{
+	dstd::Tester tc("<string> string");
+	testString<char>(tc);
+	dstd::Tester tw("<string> wstring");
+	testString<wchar_t>(tw);
 	
-	t.report();
+	tc.report();
+	tw.report();
+	
 	return 0;
 }

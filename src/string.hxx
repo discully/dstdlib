@@ -5,7 +5,7 @@
 
 #include <cstddef>
 #include <cstdio>
-#include <cwctype>
+#include <cwchar>
 #include <limits>
 
 #include "algorithm.hxx"
@@ -17,13 +17,45 @@
 
 namespace dstd
 {
+	namespace impl
+	{
+		template <class Character> class char_trait_defs;
+		template <> class char_trait_defs<char>;
+		template <> class char_trait_defs<wchar_t>;
+	}
+	
 	template <class Character> class char_traits;
-	template <> class char_traits<wchar_t>;
 	
-	template <class Character, class Traits, class Allocator> class basic_string;
-	
-	typedef basic_string< char, char_traits<char>, dstd::allocator<char> > string;
+	template <class Character, class Traits = dstd::char_traits<Character>, class Allocator = dstd::allocator<Character> > class basic_string;
+	typedef basic_string<char> string;
+	typedef basic_string<wchar_t> wstring;
 }
+
+
+
+template <> class dstd::impl::char_trait_defs<char>
+{
+	public:
+		typedef char char_type;
+		typedef unsigned long int int_type;
+		typedef long long off_type;
+		typedef unsigned long long pos_type;
+		typedef mbstate_t state_type;
+		static int_type eof() { return EOF; }
+};
+
+
+
+template <> class dstd::impl::char_trait_defs<wchar_t>
+{
+	public:
+		typedef wchar_t char_type;
+		typedef wint_t int_type;
+		typedef long long off_type;
+		typedef unsigned long long pos_type;
+		typedef mbstate_t state_type;
+		static int_type eof() { return WEOF; }
+};
 
 
 
@@ -32,11 +64,11 @@ class dstd::char_traits
 {
 	public:
 		
-		typedef Character char_type;
-		typedef unsigned long int int_type;
-		typedef long long off_type;
-		typedef unsigned long long pos_type;
-		//typedef state_type;
+		typedef typename dstd::impl::char_trait_defs<Character>::char_type  char_type;
+		typedef typename dstd::impl::char_trait_defs<Character>::int_type   int_type;
+		typedef typename dstd::impl::char_trait_defs<Character>::off_type   off_type;
+		typedef typename dstd::impl::char_trait_defs<Character>::pos_type   pos_type;
+		typedef typename dstd::impl::char_trait_defs<Character>::state_type state_type;
 		
 		
 		/// Assigns 'a' to the character at 'r'
@@ -161,7 +193,7 @@ class dstd::char_traits
 		/// Returns a value not equivalent to any value of type char_type.
 		static int_type eof()
 		{
-			return EOF;
+			return dstd::impl::char_trait_defs<Character>::eof();
 		}
 		
 		
@@ -183,24 +215,28 @@ class dstd::char_traits
 
 
 
-template <>
-class dstd::char_traits<wchar_t>
-{
-	public:
-	
-		typedef wint_t int_type;
-		
-		
-		/// Returns a value not equivalent to any value of type char_type.
-		static int_type eof()
-		{
-			return WEOF;
-		}
-};
+//template <>
+//class dstd::char_traits<wchar_t>
+//{
+//	public:
+//	
+//		typedef wchar_t char_type;
+//		typedef wint_t int_type;
+//		typedef long long off_type;
+//		typedef unsigned long long pos_type;
+//		typedef mbstate_t state_type;
+//		
+//		
+//		/// Returns a value not equivalent to any value of type char_type.
+//		static int_type eof()
+//		{
+//			return WEOF;
+//		}
+//};
 
 
 
-template <class Character, class Traits = dstd::char_traits<Character>, class Allocator = dstd::allocator<Character> >
+template <class Character, class Traits, class Allocator>
 class dstd::basic_string
 {
 	public:
@@ -660,7 +696,7 @@ class dstd::basic_string
 			{
 				// The characters being inserted are within this string.
 				// Create a copy before trying anything.
-				return this->replace(pos, count, string(s, s_count));
+				return this->replace(pos, count, basic_string(s, s_count));
 			}
 			
 			return *this;
@@ -829,7 +865,7 @@ class dstd::basic_string
 	
 	
 	
-	public:
+	private:
 		
 		allocator_type a;
 		unsigned int n_data;
