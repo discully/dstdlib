@@ -3,15 +3,30 @@
 
 
 
-#include "string.hxx"
+#include "iosfwd.hxx"
+#include "exception.hxx"
 
 
 
 namespace dstd
 {
+	// forward declarations
+	
+	//template <class Character, class Traits = char_traits<Character> > class basic_streambuf;
+	//template <class Character, class Traits> class basic_ostream;
+	
+	typedef std::locale locale;
+	
+	// this header
+	
 	class ios_base;
-	template <class Character, class Traits> class basic_ios;
-	class fpos;
+	
+	//template <class Character, class Traits = dstd::char_traits<Character> > class basic_ios;
+	template <class Character, class Traits > class basic_ios;
+	
+	template <class State> class fpos;
+	//typedef fpos< dstd::char_traits<char>::state_type > streampos;
+	//typedef fpos< dstd::char_traits<wchar_t>::state_type > wstreampos;
 	
 	typedef std::streamoff streamoff;
 	typedef std::streamsize streamsize;
@@ -38,10 +53,6 @@ namespace dstd
 	dstd::ios_base& oct         (dstd::ios_base& x);
 	dstd::ios_base& fixed       (dstd::ios_base& x);
 	dstd::ios_base& scientific  (dstd::ios_base& x);
-	
-	// Because I can't be bothered with implementing a locale right now,
-	// but may do in the future:
-	typedef std::locale locale;
 }
 
 
@@ -50,15 +61,17 @@ class dstd::ios_base
 {
 	public:
 		
-		// Format Flags
+		//
+		// Flags
 		
+		// Format Flags
 		typedef unsigned long fmtflags;
 		static const fmtflags internal   = 1 <<  0;
 		static const fmtflags left       = 1 <<  1;
 		static const fmtflags right      = 1 <<  2;
-		static const fmtflags dec        = 1 <<  3;
-		static const fmtflags hex        = 1 <<  4;
-		static const fmtflags oct        = 1 <<  5;
+		static const fmtflags dec        = 1 <<  3; ///< decimal numbers
+		static const fmtflags hex        = 1 <<  4; ///< hexadecimal numbers
+		static const fmtflags oct        = 1 <<  5; ///< octal numbers
 		static const fmtflags fixed      = 1 <<  6;
 		static const fmtflags scientific = 1 <<  7;
 		static const fmtflags boolalpha  = 1 <<  8;
@@ -73,15 +86,13 @@ class dstd::ios_base
 		static const fmtflags floatfield = fixed | scientific;
 		
 		// State flags
-		
 		typedef unsigned long iostate;
+		static const iostate goodbit = 0;
 		static const iostate eofbit  = 1 << 0;
 		static const iostate failbit = 1 << 1;
 		static const iostate badbit  = 1 << 2;
-		static const iostate goodbit = 1 << 3;
 		
 		// Open mode flags
-		
 		typedef unsigned long openmode;
 		static const openmode app    = 1 << 0; ///< append - seek to the end of the stream before each write
 		static const openmode ate    = 1 << 1; ///< at the end - seek to the end of the stream immediately after open
@@ -91,11 +102,10 @@ class dstd::ios_base
 		static const openmode trunc  = 1 << 5; ///< truncate - discards the contents of the stream when opening
 		
 		// Seek direction
-		
 		typedef unsigned long seekdir;
-		static const seekdir beg = 1 << 0;
-		static const seekdir cur = 1 << 1;
-		static const seekdir end = 1 << 2;
+		static const seekdir beg = 1 << 0; ///< beginning
+		static const seekdir cur = 1 << 1; ///< current
+		static const seekdir end = 1 << 2; ///< end
 		
 		// Event types
 		
@@ -108,38 +118,118 @@ class dstd::ios_base
 				virtual const char* what() const { return "dstd::ios_base::failure"; }
 		};
 		
-		// TODO: class Init;
+		// toto
+		//class Init;
 		
 		
 		//
 		// Methods
 		
-		virtual ~ios_base();
+		virtual ~ios_base() {};
 		
 		// Formatting
 		
-		fmtflags flags() const { return this->ff; }
-		fmtflags flags(fmtflags flags) { fmtflags old = this->ff; this->ff = flags; return old; }
 		
-		fmtflags setf(fmtflags flags) { fmtflags old = this->ff; this->ff |= flags; return old; }
-		fmtflags setf(fmtflags flags, fmtflags mask) { fmtflags old = this->ff; this->ff = (this->ff & ~mask) | (flags & mask); return old; }
+		/// Returns the current formatting flags.
+		fmtflags flags() const
+		{
+			return this->frmt;
+		}
 		
-		void unsetf(fmtflags flags ) { this->ff &= ~flags; }
 		
-		streamsize precision() const { return this->prec; }
-		streamsize precision(streamsize new_precision) { streamsize old = this->prec; this->prec = new_precision; return old; }
+		/// Set the formatting flags.
+		/// \flags The new format flags.
+		/// \returns The formatting flags before this change.
+		fmtflags flags(fmtflags flags)
+		{
+			fmtflags old = this->frmt;
+			this->frmt = flags;
+			return old;
+		}
 		
-		streamsize width() const { return this->wide; }
-		streamsize width(streamsize new_width) { streamsize old = this->wide; this->wide = new_width; return old; }
+		
+		/// Set additional formatting flags to \p true.
+		/// \param flags Bit mask indicating which formatting flags should be set to \p true.
+		/// \returns The formatting flags before this change.
+		fmtflags setf(fmtflags flags)
+		{
+			fmtflags old = this->frmt;
+			this->frmt |= flags;
+			return old;
+		}
+		
+		
+		/// Set specific formatting flags.
+		/// \param flags The new values of formatting flags in \p mask.
+		/// \param mask Bit mask indicating which formatting flags should be set according to \p flags.
+		/// \returns The formatting flags before this change.
+		fmtflags setf(fmtflags flags, fmtflags mask)
+		{
+			fmtflags old = this->frmt;
+			this->frmt = ( (this->frmt & ~mask) | (flags & mask) );
+			return old;
+		}
+		
+		
+		/// Set specific format flags 
+		void unsetf(fmtflags flags )
+		{
+			this->frmt &= ~flags;
+		}
+		
+		
+		streamsize precision() const
+		{
+			return this->prec;
+		}
+		
+		
+		streamsize precision(streamsize new_precision)
+		{
+			streamsize old = this->prec;
+			this->prec = new_precision;
+			return old;
+		}
+		
+		
+		streamsize width() const
+		{
+			return this->wide;
+		}
+		
+		
+		streamsize width(streamsize new_width)
+		{
+			streamsize old = this->wide;
+			this->wide = new_width;
+			return old;
+		}
+		
 		
 		// Locales
 		
-		dstd::locale imbue(const dstd::locale& new_locale) { dstd::locale old = this->loc; this->loc = new_locale; return old; }
-		dstd::locale getloc() const { return this->loc; }
+		dstd::locale imbue(const dstd::locale& new_locale)
+		{
+			dstd::locale old_locale = this->loc;
+			this->loc = new_locale;
+			return old_locale;
+		}
+		
+		
+		dstd::locale getloc() const
+		{
+			return this->loc;
+		}
+		
 		
 		// Internal array
 		
-		static int xalloc() { static size_t xalloc_index = 0; return xalloc_index++; }
+		static int xalloc()
+		{
+			static size_t xalloc_index = 0;
+			return xalloc_index++;
+		}
+		
 		
 		long& iword(int index)
 		{
@@ -150,6 +240,7 @@ class dstd::ios_base
 			return this->larray[index];
 		}
 		
+		
 		void*& pword(int index)
 		{
 			if( index >= plength )
@@ -159,25 +250,38 @@ class dstd::ios_base
 			return this->parray[index];
 		}
 		
+		
 		// Miscellaneous
 		
-		void register_callback(event_callback function, int index);
-		static bool sync_with_stdio(bool sync = true);
+		// todo
+		//void register_callback(event_callback function, int index);
+		
+		
+		// todo
+		//static bool sync_with_stdio(bool sync = true);
 		
 		
 	protected:
 		
-		ios_base();
+		/// The internal state is undefined after the construction.
+		/// The derived class must call basic_ios::init() to complete initialization before first use or before destructor,
+		/// otherwise the behaviour is undefined.
+		ios_base()
+			: llength(0), plength(0)
+		{};
 		
 		
 	private:
 		
+		/// Not implemented. Copy construction is prohibited.
 		ios_base(const ios_base& x);
 		
-		void l_expand(const int index)
+		
+		
+		void l_expand(const size_t index)
 		{
 			// determine the new size required
-			size_t new_llength = llength;
+			size_t new_llength = (this->llength > 0) ? this->llength : 4;
 			while( new_llength <= index )
 			{
 				new_llength *= 2;
@@ -198,10 +302,11 @@ class dstd::ios_base
 			this->llength = new_llength;
 		}
 		
-		void p_expand(const int index)
+		
+		void p_expand(const size_t index)
 		{
 			// determine the new size required
-			size_t new_plength = plength;
+			size_t new_plength = (this->plength > 0) ? this->plength : 4;
 			while( new_plength <= index )
 			{
 				new_plength *= 2;
@@ -222,10 +327,11 @@ class dstd::ios_base
 			this->plength = new_plength;
 		}
 		
+		
 		dstd::locale loc;
-		streamsize wide;
-		streamsize prec;
-		fmtflags ff;
+		streamsize wide; ///< field width
+		streamsize prec; ///< field precision
+		fmtflags frmt; ///< field format
 		void** parray;
 		long* larray;
 		size_t llength;
@@ -272,8 +378,8 @@ const dstd::ios_base::seekdir dstd::ios_base::cur;
 const dstd::ios_base::seekdir dstd::ios_base::end;
 
 
-/*
-template <class Character, class Traits = dstd::char_traits<Character> >
+
+template <class Character, class Traits >
 class dstd::basic_ios : public dstd::ios_base
 {
 	public:
@@ -284,18 +390,307 @@ class dstd::basic_ios : public dstd::ios_base
 		typedef typename Traits::pos_type pos_type;
 		typedef typename Traits::off_type off_type;
 		
-		explicit basic_ios(dstd::basic_streambuf<Character, Traits>* buffer);
+		
+		explicit basic_ios(dstd::basic_streambuf<Character, Traits>* read_buffer)
+		{
+			this->init(read_buffer);
+		}
+		
+		
+		virtual ~basic_ios() {}
+		
+		
+		// State functions
+		
+		
+		/// Checks if no error has occurred.
+		bool good() const
+		{
+			return (this->rdstate() == dstd::ios_base::goodbit);
+		}
+		
+		
+		/// Checks if end-of-file has been reached .
+		/// \returns True if dstd::ios_base::eofbit has been set, false otherwise.
+		bool eof() const
+		{
+			return ( (this->rdstate() & dstd::ios_base::eofbit) != 0 );
+		}
+		
+		
+		/// Checks if a recoverable error has occurred 
+		/// \returns True if dstd::ios_base::badbit or dstd::ios_base::failbit have been set.
+		bool fail() const
+		{
+			return ( (this->rdstate() & (dstd::ios_base::badbit | dstd::ios_base::failbit)) != 0 );
+		}
+		
+		
+		/// Checks if a non-recoverable error has occurred.
+		/// \returns True if dstd::ios_base::badbit has been set, or false otherwise.
+		bool bad() const
+		{
+			return ( (this->rdstate() & dstd::ios_base::badbit) != 0 );
+		}
+		
+		
+		/// Synonym of fail()
+		bool operator! () const
+		{
+			return this->fail();
+		}
+		
+		
+		/// Synonym of ! fail()
+		/// \returns A null pointer if fail() is true, or a non-null pointer otherwise.
+		operator void* () const
+		{
+			return (this->fail() ? 0 : 1);
+		}
+		
+		
+		dstd::ios_base::iostate rdstate() const
+		{
+			return this->state;
+		}
+		
+		
+		void setstate(dstd::ios_base::iostate read_state)
+		{
+			this->state |= read_state;
+		}
+		
+		
+		void clear(dstd::ios_base::iostate read_state = dstd::ios_base::goodbit)
+		{
+			if( this->rdbuf() == 0 )
+			{
+				this->state = read_state | dstd::ios_base::badbit;
+			}
+			else
+			{
+				this->state = read_state;
+			}
+		}
+		
+		
+		// Formatting
+		
+		
+		// todo
+		// basic_ios& copyfmt(const basic_ios& x)
+		
+		
+		Character fill() const
+		{
+			return this->fill_char;
+		}
+		
+		
+		Character fill(Character c)
+		{
+			char_type old_fill = this->fill_char;
+			this->fill_char = c;
+			return old_fill;
+		}
+		
+		
+		// Miscellaneous
+		
+		
+		/// Returns the current exception mask.
+		dstd::ios_base::iostate exceptions() const
+		{
+			return this->take_exception;
+		}
+		
+		
+		/// Sets the current exception mask.
+		void exceptions(dstd::ios_base::iostate except)
+		{
+			this->take_exception = except;
+		}
+		
+		
+		/// Replaces the current locale.
+		/// \returns The previous locale.
+		dstd::locale imbue(const dstd::locale& new_locale)
+		{
+			dstd::locale old_locale = this->ios_base::imbue(new_locale);
+			if( this->rdbuf() != 0 ) this->rdbuf()->pubimbue(new_locale);
+			return old_locale;
+		}
+		
+		
+		dstd::basic_streambuf<Character, Traits>* rdbuf() const
+		{
+			return this->buffer;
+		}
+		
+		
+		dstd::basic_streambuf<Character, Traits>* rdbuf(dstd::basic_streambuf<Character, Traits>* new_buffer)
+		{
+			dstd::basic_streambuf<Character, Traits>* old_buffer = this->rdbuf();
+			this->buffer = new_buffer;
+			return old_buffer;
+		}
+		
+		
+		dstd::basic_ostream<Character, Traits>* tie() const
+		{
+			return this->stream;
+		}
+		
+		
+		dstd::basic_ostream<Character, Traits>* tie(dstd::basic_ostream<Character, Traits>* new_ostream)
+		{
+			dstd::basic_ostream<Character, Traits>* old_ostream = this->tie();
+			this->ostream = new_ostream;
+			return old_ostream;
+		}
+		
+		
+		// todo
+		// char narrow( char_type c, char dfault ) const
+		
+		
+		// todo
+		// char_type widen( char c ) const
+		
 		
 	protected:
 		
-		basic_ios();
+		/// Default constructor. 
+		/// The internal state is not initialized.
+		/// init() must be called before the first use of the object or before destructor, otherwise the behaviour is undefined.
+		basic_ios() {};
+		
+		
+		void init(dstd::basic_streambuf<Character, Traits>* read_buffer)
+		{
+			this->rdbuf(read_buffer);
+			this->tie(0);
+			this->clear();
+			this->exceptions(dstd::ios_base::goodbit);
+			this->flags(dstd::ios_base::skipws | dstd::ios_base::dec);
+			this->width(0);
+			this->precision(6);
+			// todo
+			// this->fill( this->widen(' ') );
+			this->imbue( dstd::locale() );
+		}
+		
+		
+		void set_rdbuf(dstd::basic_streambuf<Character, Traits>* new_buffer)
+		{
+			this->buffer = new_buffer;
+		}
+	
 	
 	private:
 		
+		/// Not implemented. Copy construction is not permitted.
 		basic_ios(const basic_ios&);
+		
+		
+		/// Not implemented. Copy assignment is not permitted.
+		basic_ios& operator= (const basic_ios& x);
+		
+		
+		dstd::basic_streambuf<Character, Traits>* buffer;
+		char_type fill_char;
+		dstd::ios_base::iostate state;
+		dstd::basic_ostream<Character, Traits>* ostream;
+		dstd::ios_base::iostate take_exception;
 };
-*/
 
+
+
+template <class State>
+class dstd::fpos
+{
+	public:
+		
+		fpos(int state)
+			: s(state)
+		{}
+		
+		
+		fpos(const dstd::streamoff& off)
+			: s(off)
+		{}
+		
+		
+		operator dstd::streamoff() const
+		{
+			return static_cast<dstd::streamoff>( this->state() );
+		}
+		
+		
+		State state() const
+		{
+			return this->s;
+		}
+		
+		
+		void state(State new_state)
+		{
+			this->s = new_state;
+		}
+		
+		
+		bool operator== (const fpos& x)
+		{
+			return (this->state() == x.state());
+		}
+		
+		
+		bool operator!= (const fpos& x)
+		{
+			return ! (*this == x);
+		}
+		
+		
+		fpos& operator+= (const dstd::streamoff& off)
+		{
+			this->s += off;
+			return *this;
+		}
+		
+		
+		fpos operator+ (const dstd::streamoff& off)
+		{
+			fpos temp(*this);
+			temp += off;
+			return temp;
+		}
+		
+		
+		fpos& operator-= (const dstd::streamoff& off)
+		{
+			this->s -= off;
+			return *this;
+		}
+		
+		
+		dstd::streamoff operator- (const fpos& rhs)
+		{
+			return static_cast<dstd::streamoff>( this->state() - rhs.state() );
+		}
+		
+		
+		fpos operator- (const dstd::streamoff& off)
+		{
+			fpos temp(*this);
+			temp -= off;
+			return temp;
+		}
+		
+		
+	private:
+		
+		State s;
+};
 
 
 	
