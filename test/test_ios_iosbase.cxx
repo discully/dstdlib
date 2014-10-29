@@ -51,7 +51,6 @@ int main()
 		t.testEqual("destructor:shouldTriggerCallback", global_f1_calls, before+1);
 		t.testEqual("destructor:shouldTriggerCallbackWithEraseEvent", global_f1_event, dstd::ios_base::erase_event);
 	}
-		
 	
 	// fmtflags flags() const
 	// fmtflags flags(fmtflags flags)
