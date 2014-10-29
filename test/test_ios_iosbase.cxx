@@ -11,21 +11,11 @@ class ios_base_test : public dstd::ios_base
 			this->flags(0);
 		}
 };
-class std_ios_base_test : public std::ios_base
-{
-	public:
-		std_ios_base_test()
-		{
-			//this->flags(0);
-		}
-};
 
 
 int main()
 {
 	dstd::Tester t("<ios> ios_base");
-	
-	//using namespace dstd;
 	
 	// fmtflags flags() const
 	// fmtflags flags(fmtflags flags)
@@ -127,7 +117,6 @@ int main()
 		t.testEqual("width:shouldSetAndReturnValue", b.width(), w);
 	}
 	
-	// todo
 	// dstd::locale imbue(const dstd::locale& new_locale)
 	
 	{
