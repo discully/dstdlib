@@ -32,14 +32,24 @@ int main()
 	
 	{
 		ios_base_test b;
-		t.testEqual("flags:shouldAllBeFalseOnConstruction", b.flags(), 0);
+		t.testEqual("flags():shouldAllBeFalseOnConstruction", b.flags(), 0);
 	}
 	
 	{
 		ios_base_test b;
 		const dstd::ios_base::fmtflags f = dstd::ios_base::dec | dstd::ios_base::showbase;
 		b.flags(f);
-		t.testEqual("flags:shouldSetAndReturnFlags", b.flags(), f);
+		t.testEqual("flags():shouldSetAndReturnCurrentFlags", b.flags(), f);
+	}
+	
+	{
+		const dstd::ios_base::fmtflags f1 = dstd::ios_base::dec | dstd::ios_base::showbase;
+		const dstd::ios_base::fmtflags f2 = dstd::ios_base::hex | dstd::ios_base::left;
+		
+		ios_base_test b;
+		b.flags(f1);
+		
+		t.testEqual("flags(fmtflags):shouldReturnPreviousValue", b.flags(f2), f1);
 	}
 	
 	// fmtflags setf(fmtflags flags)
@@ -56,6 +66,17 @@ int main()
 	}
 	
 	// fmtflags setf(fmtflags flags, fmtflags mask)
+	
+	{
+		const dstd::ios_base::fmtflags f0 = dstd::ios_base::hex | dstd::ios_base::left;
+		const dstd::ios_base::fmtflags f1 = dstd::ios_base::dec | dstd::ios_base::showbase;
+		const dstd::ios_base::fmtflags f2 = dstd::ios_base::dec | dstd::ios_base::hex;
+		
+		ios_base_test b;
+		b.flags(f0);
+		
+		t.testEqual("setf(fmtflags,fmtflags):shouldReturnPreviousValue",   b.setf(f1, f2), f0);
+	}
 	
 	{
 		const dstd::ios_base::fmtflags f0 = dstd::ios_base::hex | dstd::ios_base::left;
@@ -108,7 +129,36 @@ int main()
 	
 	// todo
 	// dstd::locale imbue(const dstd::locale& new_locale)
+	
+	{
+		ios_base_test b;
+		const dstd::locale e("en_GB.UTF-8");
+		
+		t.testEqual("imbue:shouldReturnPreviousLocale", b.imbue(e).name(), dstd::locale().name());
+	}
+	
+	{
+		ios_base_test b;
+		const dstd::locale e("en_GB.UTF-8");
+		
+		b.imbue(e);
+		t.testEqual("imbue:shouldSetLocale", b.getloc().name(), e.name());
+	}
+	
 	// dstd::locale getloc() const
+	
+	{
+		ios_base_test b;
+		t.testEqual("getloc:shouldReturnDefaultLocaleOnConstruction", b.getloc().name(), dstd::locale().name());
+	}
+	
+	{
+		ios_base_test b;
+		const dstd::locale e("en_GB.UTF-8");
+		
+		b.imbue(e);
+		t.testEqual("getloc:shouldReturnLocale", b.getloc().name(), e.name());
+	}
 	
 	// static int xalloc()
 	
