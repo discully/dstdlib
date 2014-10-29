@@ -10,23 +10,13 @@
 
 namespace dstd
 {
-	// forward declarations
-	
-	//template <class Character, class Traits = char_traits<Character> > class basic_streambuf;
-	//template <class Character, class Traits> class basic_ostream;
-	
 	typedef std::locale locale;
-	
-	// this header
 	
 	class ios_base;
 	
-	//template <class Character, class Traits = dstd::char_traits<Character> > class basic_ios;
 	template <class Character, class Traits > class basic_ios;
 	
 	template <class State> class fpos;
-	//typedef fpos< dstd::char_traits<char>::state_type > streampos;
-	//typedef fpos< dstd::char_traits<wchar_t>::state_type > wstreampos;
 	
 	typedef std::streamoff streamoff;
 	typedef std::streamsize streamsize;
@@ -125,10 +115,13 @@ class dstd::ios_base
 		//
 		// Methods
 		
-		virtual ~ios_base() {};
+		virtual ~ios_base()
+		{
+			this->callback(dstd::ios_base::erase_event);
+		};
+		
 		
 		// Formatting
-		
 		
 		/// Returns the current formatting flags.
 		fmtflags flags() const
@@ -212,6 +205,7 @@ class dstd::ios_base
 		{
 			dstd::locale old_locale = this->loc;
 			this->loc = new_locale;
+			this->callback(dstd::ios_base::imbue_event);
 			return old_locale;
 		}
 		
@@ -222,7 +216,7 @@ class dstd::ios_base
 		}
 		
 		
-		// Internal array
+		// Internal arrays
 		
 		static int xalloc()
 		{
@@ -253,8 +247,17 @@ class dstd::ios_base
 		
 		// Miscellaneous
 		
-		// todo
-		//void register_callback(event_callback function, int index);
+		void register_callback(event_callback function, int index)
+		{
+			if( this->clength == this->ccapacity ) this->c_expand(this->clength + 1);
+			
+			callback_pair new_callback;
+			new_callback.func = function;
+			new_callback.index = index;
+			
+			this->carray[this->clength] = new_callback;
+			++(this->clength);
+		}
 		
 		
 		// todo
@@ -267,15 +270,55 @@ class dstd::ios_base
 		/// The derived class must call basic_ios::init() to complete initialization before first use or before destructor,
 		/// otherwise the behaviour is undefined.
 		ios_base()
-			: llength(0), plength(0)
+			: clength(0), ccapacity(0), llength(0), plength(0)
 		{};
+		
+		
+		void callback(dstd::ios_base::event e)
+		{
+			for(size_t i = this->clength; i > 0; --i)
+			{
+				this->carray[i-1].func(e, *this, this->carray[i-1].index);
+			}
+		}
 		
 		
 	private:
 		
+		struct callback_pair
+		{
+			event_callback func;
+			int index;
+		};
+		
+		
 		/// Not implemented. Copy construction is prohibited.
 		ios_base(const ios_base& x);
 		
+		
+		void c_expand(const size_t size)
+		{
+			// determine the new size required
+			size_t new_ccapacity = (this->ccapacity > 0) ? this->ccapacity : 4;
+			while( new_ccapacity <= size )
+			{
+				new_ccapacity *= 2;
+			}
+			// get the new array
+			callback_pair* new_carray = new callback_pair[new_ccapacity];
+			if( new_carray == 0 )
+			{
+				// todo: complain
+			}
+			// copy existing values over
+			for(size_t i = 0; i < this->clength; ++i)
+			{
+				new_carray[i] = this->carray[i];
+			}
+			// update class members
+			this->carray = new_carray;
+			this->ccapacity = new_ccapacity;
+		}
 		
 		
 		void l_expand(const size_t index)
@@ -328,14 +371,17 @@ class dstd::ios_base
 		}
 		
 		
-		dstd::locale loc;
-		streamsize wide; ///< field width
-		streamsize prec; ///< field precision
-		fmtflags frmt; ///< field format
-		void** parray;
-		long* larray;
-		size_t llength;
-		size_t plength;
+		dstd::locale loc; ///< Current locale.
+		streamsize wide; ///< Field width.
+		streamsize prec; ///< Field precision.
+		fmtflags frmt; ///< Field format.
+		callback_pair* carray; ///< Array of callback functions.
+		void** parray; ///< Array of generic void pointers.
+		long* larray; ///< Array of generic longs.
+		size_t clength; ///< Number of entries in the array of callback functions (\p carray).
+		size_t ccapacity; ///< Length of the array of callback functions (\p carray).
+		size_t llength; ///< Length of the array of long (\p larray).
+		size_t plength; ///< Length of the array of void pointers (\p parray).
 };
 
 
@@ -476,9 +522,31 @@ class dstd::basic_ios : public dstd::ios_base
 		
 		// Formatting
 		
-		
-		// todo
-		// basic_ios& copyfmt(const basic_ios& x)
+		basic_ios& copyfmt(const basic_ios& x)
+		{
+			this->callback(dstd::ios_base::erase_event);
+			
+			this->flags( x.flags() );
+			this->width( x.width() );
+			this->precision( x.precision() );
+			this->loc = x.loc; // Can't call imbue: don't want to fire the imbue_event callbacks.
+			for(size_t i = 0; i < x.llength; ++i) // todo: could be more efficient, avoiding the function calls?
+			{
+				this->iword(i) = x.iword(i);
+			}
+			for(size_t i = 0; i < x.plength; ++i)// todo: could be more efficient, avoiding the function calls?
+			{
+				this->pword(i) = x.pword(i);
+			}
+			this->fill( x.fill() );
+			this->tie( x.tie() );
+			
+			this->callback(dstd::ios_base::copyfmt_event);
+			
+			this->exceptions( x.exceptions() );
+			
+			return *this;
+		}
 		
 		
 		Character fill() const
@@ -496,7 +564,6 @@ class dstd::basic_ios : public dstd::ios_base
 		
 		
 		// Miscellaneous
-		
 		
 		/// Returns the current exception mask.
 		dstd::ios_base::iostate exceptions() const
@@ -716,6 +783,7 @@ dstd::ios_base& hex         (dstd::ios_base& x) { x.setf(dstd::ios_base::hex,   
 dstd::ios_base& oct         (dstd::ios_base& x) { x.setf(dstd::ios_base::oct,        dstd::ios_base::basefield);   return x; }
 dstd::ios_base& fixed       (dstd::ios_base& x) { x.setf(dstd::ios_base::fixed,      dstd::ios_base::floatfield);  return x; }
 dstd::ios_base& scientific  (dstd::ios_base& x) { x.setf(dstd::ios_base::scientific, dstd::ios_base::floatfield);  return x; }
+
 
 
 #endif
