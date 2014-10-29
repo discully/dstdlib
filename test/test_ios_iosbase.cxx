@@ -55,6 +55,16 @@ int main()
 		t.testEqual("setf(fmtflags):shouldSetAdditionalFlags", b.flags(), f1 | f2);
 	}
 	
+	{
+		const dstd::ios_base::fmtflags f1 = dstd::ios_base::dec | dstd::ios_base::showbase;
+		const dstd::ios_base::fmtflags f2 = dstd::ios_base::left | dstd::ios_base::showbase;
+		
+		ios_base_test b;
+		b.flags(f1);
+		
+		t.testEqual("setf(fmtflags):shouldReturnPreviousValue", b.setf(f2), f1);
+	}
+	
 	// fmtflags setf(fmtflags flags, fmtflags mask)
 	
 	{
