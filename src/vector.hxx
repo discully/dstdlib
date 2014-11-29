@@ -374,9 +374,9 @@ class dstd::vector
 		if( position < this->end() )
 		{
 			// Shuffle the last n elements n positions along
-			iterator it_from = iterator( &(this->back()) );
+			iterator it_from = this->end() - 1;
 			iterator it_to = it_from + n;
-			while( it_from > position )
+			while( it_from >= position )
 			{
 				this->a.construct( &(*it_to), *it_from );
 				this->a.destroy( &(*it_from) );
@@ -426,9 +426,9 @@ class dstd::vector
 		if( position < this->end() )
 		{
 			// Shuffle the last n elements n positions along
-			iterator it_from = iterator( &(this->back()) );
+			iterator it_from = this->end() - 1;
 			iterator it_to = it_from + n;
-			while( it_from > position )
+			while( it_from >= position )
 			{
 				this->a.construct( &(*it_to), *it_from );
 				this->a.destroy( &(*it_from) );
@@ -483,14 +483,9 @@ class dstd::vector
 	
 	iterator erase(iterator first, iterator last)
 	{
-		// Check that first and last are in the expected order
 		if( first == last )
 		{
 			return last;
-		}
-		else if( first < this->begin() || first > last || last > this->end() )
-		{
-			throw dstd::out_of_range();
 		}
 		
 		unsigned int n_remove = static_cast<unsigned int>( last - first );
