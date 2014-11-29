@@ -1,9 +1,20 @@
-My attempt to implement some parts of the C++ Standard Library.
-This is purely for my own interest - it would not be a good idea to use this in your own code base!
+An implementation of the C++ Standard Library.
 
-For simplicity, I am using websites such as cplusplus.com and cppreference.com as references for
-signatures and behaviours, instead of the spec itself, so the implementation may not be
-completely correct in some edge cases.
+Written as a learning exercise, this is unlikely to be a
+good choice to use in your own code!
 
-Since this is a personal learning exercise, I have also prioritised writing and testing
-code over documentation.
+# Unit Testing
+
+During initial development a custom unit testing class was used.
+However this has recently become a limitation and the existing unit tests
+are currently being migrated to Google Test (a worthwhile exercise since
+several bugs have already been identified).
+
+The directory 'test' contains the original, and currently more substantial
+tests. Tests which have already been migrated to Google Test are considered
+to be deprecated.
+
+The directory 'gtest' contains the tests which have been migrated to 
+Google Test. Running 'make test' will compile and run all tests.
+You will need to have Google Test installed and in your library/include
+paths.
