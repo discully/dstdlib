@@ -9,11 +9,25 @@ namespace dstd
 	{
 		return ::operator==(v1, v2);
 	}
+	
 	template <class Key, class Value> bool operator!= (const dstd::map<Key,Value>& v1, const dstd::map<Key,Value>& v2)
 	{
 		return ::operator!=(v1, v2);
 	}
+	
+	template <class Key, class T>
+	void PrintTo(const map<Key,T>& m, ::std::ostream* stream)
+	{
+		*stream << "dstd::map[";
+		for(typename dstd::map<Key,T>::const_iterator it = m.begin(); it != m.end(); ++it)
+		{
+			*stream << "(" << it->first << "," << it->second << "), ";
+		}
+		*stream << "]";
+	}
 }
+
+
 
 
 
@@ -25,7 +39,8 @@ class Map : public ::testing::Test
 		{
 			pi = 3.14159;
 			
-			empty.clear();
+			empty_d.clear();
+			empty_i.clear();
 			twenty_squares.clear();
 			negative_squares.clear();
 			
@@ -42,7 +57,8 @@ class Map : public ::testing::Test
 		}
 		
 		double pi;
-		dstd::map<int, double> empty;
+		dstd::map<int, double> empty_d;
+		dstd::map<int, int> empty_i;
 		dstd::map<int, int> twenty_squares;
 		dstd::map<int, int> negative_squares;
 };
@@ -285,7 +301,7 @@ class Map : public ::testing::Test
 
 TEST_F(Map, emptyReturnsTrueForEmptyMap)
 {
-	ASSERT_TRUE( empty.empty() );
+	ASSERT_TRUE( empty_d.empty() );
 }
 
 
@@ -300,7 +316,7 @@ TEST_F(Map, emptyReturnsFalseForNonEmptyMap)
 
 TEST_F(Map, sizeReturnsZeroForEmptyMap)
 {
-	ASSERT_EQ(0, empty.size());
+	ASSERT_EQ(0, empty_d.size());
 }
 
 
@@ -438,7 +454,7 @@ TEST_F(Map, insertIteratorIteratorDoesNotInsertForEmptyRange)
 {
 	const size_t size_before = twenty_squares.size();
 	
-	twenty_squares.insert( empty.begin(), empty.end() );
+	twenty_squares.insert( empty_i.begin(), empty_i.end() );
 	
 	ASSERT_EQ( size_before, twenty_squares.size() );
 }
@@ -505,6 +521,12 @@ TEST_F(Map, eraseKeyWithNonexistantKeyHasNoEffect)
 }
 
 
+TEST_F(Map, eraseKeyWithNonexistantKeyReturnsZero)
+{
+	ASSERT_EQ( 0, twenty_squares.erase( 99 ) );
+}
+
+
 // void erase(iterator first, iterator last)
 
 
@@ -542,6 +564,45 @@ TEST_F(Map, eraseIteratorIteratorForBeginEndLeavesMapEmpty)
 	twenty_squares.erase( twenty_squares.begin(), twenty_squares.end() );
 	
 	ASSERT_TRUE( twenty_squares.empty() );
+}
+
+
+// void swap(map& x)
+
+
+TEST_F(Map, swapSucceeds)
+{
+	const dstd::map<int,int> twenty_squares_before = twenty_squares;
+	const dstd::map<int,int> negative_squares_before = negative_squares;
+	
+	twenty_squares.swap( negative_squares );
+	
+	ASSERT_EQ( twenty_squares_before, negative_squares );
+	ASSERT_EQ( negative_squares_before, twenty_squares );
+}
+
+
+TEST_F(Map, swapToEmptySucceeds)
+{
+	const dstd::map<int,int> twenty_squares_before = twenty_squares;
+	const dstd::map<int,int> empty_i_before = empty_i;
+	
+	twenty_squares.swap( empty_i );
+	
+	ASSERT_EQ( twenty_squares_before, empty_i );
+	ASSERT_EQ( empty_i_before, twenty_squares );
+}
+
+
+TEST_F(Map, swapByEmptySucceeds)
+{
+	const dstd::map<int,int> twenty_squares_before = twenty_squares;
+	const dstd::map<int,int> empty_i_before = empty_i;
+	
+	empty_i.swap( twenty_squares );
+	
+	ASSERT_EQ( twenty_squares_before, empty_i );
+	ASSERT_EQ( empty_i_before, twenty_squares );
 }
 
 
