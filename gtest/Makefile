@@ -3,7 +3,7 @@ LIBS=-lgtest -lgtest_main -lpthread
 
 OUTPUT_DIR=exe
 
-test: test_vector
+test: test_vector test_map
 
 test_%: makedir
 	$(CXX) $@.cxx -o $(OUTPUT_DIR)/$@ $(LIBS)
