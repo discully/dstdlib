@@ -657,33 +657,27 @@ TEST_F(Map, swapByEmptySucceeds)
 //	t.testEqual("map::swap 1a", a1, b2);
 //	t.testEqual("map::swap 1a", b1, a2);
 //}
-//
-////clear
-//
-//{
-//	dstd::map<int, double> m;
-//	m.clear();
-//	t.testEqual("map::clear [empty]", m, empty);
-//	t.testEqual("map::clear [empty] size", m.size(), empty_size);
-//	t.testEqual("map::clear [empty] iter", m.begin(), m.end());
-//	t.testEqual("map::clear [empty] empty", m.empty(), true);
-//}
-//
-//{
-//	const unsigned int n = 32;
-//	dstd::map<int, double> m;
-//	for(unsigned int i = 0; i < n; ++i)
-//	{
-//		m[i] = i;
-//	}
-//	m.clear();
-//	
-//	t.testEqual("map::clear 1", m, empty);
-//	t.testEqual("map::clear 1 size", m.size(), empty_size);
-//	t.testEqual("map::clear 1 iter", m.begin(), m.end());
-//	t.testEqual("map::clear 1 empty", m.empty(), true);
-//}
-//
+
+
+// void clear()
+
+
+TEST_F(Map, ClearLeavesMapEmpty)
+{
+	twenty_squares.clear();
+	
+	ASSERT_TRUE(twenty_squares.empty());
+}
+
+
+TEST_F(Map, ClearHasNoEffectOnEmptyMap)
+{
+	empty_d.clear();
+	
+	ASSERT_TRUE(empty_d.empty());
+}
+
+
 ////key_comp
 //
 //{
