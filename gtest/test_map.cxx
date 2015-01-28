@@ -662,7 +662,7 @@ TEST_F(Map, swapByEmptySucceeds)
 // void clear()
 
 
-TEST_F(Map, ClearLeavesMapEmpty)
+TEST_F(Map, clearLeavesMapEmpty)
 {
 	twenty_squares.clear();
 	
@@ -670,7 +670,7 @@ TEST_F(Map, ClearLeavesMapEmpty)
 }
 
 
-TEST_F(Map, ClearHasNoEffectOnEmptyMap)
+TEST_F(Map, clearHasNoEffectOnEmptyMap)
 {
 	empty_d.clear();
 	
