@@ -9,7 +9,7 @@
 #include <limits>
 
 #include "algorithm.hxx"
-#include "dstd.hxx"
+#include "impl/bool_type.hxx"
 #include "iterator.hxx"
 #include "memory.hxx"
 

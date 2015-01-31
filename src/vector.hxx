@@ -6,7 +6,7 @@
 #include <limits>
 #include <cstddef>
 
-#include "dstd.hxx"
+#include "impl/bool_type.hxx"
 #include "algorithm.hxx"
 #include "memory.hxx"
 #include "iterator.hxx"

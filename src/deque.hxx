@@ -7,7 +7,7 @@
 #include <limits>
 #include <iostream>
 
-#include "dstd.hxx"
+#include "impl/bool_type.hxx"
 #include "iterator.hxx"
 #include "memory.hxx"
 #include "utility.hxx"
