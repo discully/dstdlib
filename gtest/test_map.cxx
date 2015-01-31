@@ -5,16 +5,32 @@
 // Google test cannot deal with class and operators being in different namespaces
 namespace dstd
 {
-	template <class Key, class Value> bool operator== (const dstd::map<Key,Value>& v1, const dstd::map<Key,Value>& v2)
+	template <class Key, class T> bool operator== (const dstd::map<Key,T>& m1, const dstd::map<Key,T>& m2)
 	{
-		return ::operator==(v1, v2);
+		return ::operator==(m1, m2);
 	}
 	
-	template <class Key, class Value> bool operator!= (const dstd::map<Key,Value>& v1, const dstd::map<Key,Value>& v2)
+	template <class Key, class T> bool operator!= (const dstd::map<Key,T>& m1, const dstd::map<Key,T>& m2)
 	{
-		return ::operator!=(v1, v2);
+		return ::operator!=(m1, m2);
+	}
+	/*
+	template <class Key, class T> bool operator== (
+		const typename dstd::map<Key,T>::value_type& m1,
+		const typename dstd::map<Key,T>::value_type& m2
+		)
+	{
+		return ::operator==(m1, m2);
 	}
 	
+	template <class Key, class T> bool operator!= (
+		const typename dstd::map<Key,T>::value_type& m1,
+		const typename dstd::map<Key,T>::value_type& m2
+		)
+	{
+		return ::operator!=(m1, m2);
+	}
+	*/
 	template <class Key, class T>
 	void PrintTo(const map<Key,T>& m, ::std::ostream* stream)
 	{
@@ -25,6 +41,14 @@ namespace dstd
 		}
 		*stream << "]";
 	}
+}
+
+
+
+template <class Key, class T>
+bool equals(const dstd::pair<Key, T>& p1, const dstd::pair<Key, T>& p2)
+{
+	return (p1 == p2);
 }
 
 
@@ -606,57 +630,19 @@ TEST_F(Map, swapByEmptySucceeds)
 }
 
 
-////swap
-//
-//{
-//	dstd::map<int, double> m1, m2;
-//	m1.swap(m2);
-//	t.testEqual("map::swap [empty,empty]", m1, empty);
-//	t.testEqual("map::swap [empty,empty]", m2, empty);
-//}
-//
-//{
-//	const unsigned int n = 32;
-//	dstd::map<int, double> a1, a2, b1;
-//	for(unsigned int i = 0; i < n; ++i)
-//	{
-//		a1[i] = i;
-//	}
-//	a2 = a1;
-//	
-//	// swap empty in
-//	a1.swap(b1);
-//	t.testEqual("map::swap [empty] 1a", a1, empty);
-//	t.testEqual("map::swap [empty] 1b", b1, a2);
-//	
-//	// swap into empty
-//	a1.swap(b1);
-//	t.testEqual("map::swap [empty] 2a", b1, empty);
-//	t.testEqual("map::swap [empty] 2b", a1, a2);
-//}
-//
-//{
-//	const unsigned int n = 23;
-//	dstd::map<int,int> a1, a2, b1, b2;
-//	for(unsigned int i = 0; i < n; ++i)
-//	{
-//		if( i % 2 == 0 )
-//		{
-//			a1.insert(dstd::pair<int,int>(i, i));
-//		}
-//		else
-//		{
-//			b1.insert(dstd::pair<int,int>(i,i));
-//		}
-//	}
-//	a2 = a1;
-//	b2 = b1;
-//	
-//	a1.swap(b1);
-//	
-//	t.testEqual("map::swap 1a", a1, b2);
-//	t.testEqual("map::swap 1a", b1, a2);
-//}
+// void swap(map& x)
+
+
+TEST_F(Map, swapExchangesMapContents)
+{
+	const dstd::map<int,int> original_twenty_squares = twenty_squares;
+	const dstd::map<int,int> original_negative_squares = negative_squares;
+	
+	twenty_squares.swap(negative_squares);
+	
+	ASSERT_EQ( original_twenty_squares, negative_squares );
+	ASSERT_EQ( original_negative_squares, twenty_squares );
+}
 
 
 // void clear()
@@ -693,7 +679,8 @@ TEST_F(Map, clearHasNoEffectOnEmptyMap)
 //	t.testEqual( "map::key_comp 3", comp(b, a), (b < a) );
 //	t.testEqual( "map::key_comp 4", comp(c, cc), (c < cc) );
 //}
-//
+
+
 ////value_comp
 //
 //{
@@ -721,86 +708,116 @@ TEST_F(Map, clearHasNoEffectOnEmptyMap)
 //	t.testEqual( "map::value_comp 7", vcomp(pb, pa),  kcomp(b, a) );
 //	t.testEqual( "map::value_comp 8", vcomp(pc, pcc), kcomp(c, cc) );
 //}
-//
-////find
-//
-//{
-//	dstd::map<char, double> m;
-//	t.testEqual("map::find [empty]", m.find('d'), m.end());
-//}
-//
-//{
-//	const double x = 3.14;
-//	const int n = 10;
-//	const int k = 2;
-//	dstd::map<int, double> m;
-//	for(int i = 0; i < n; ++i)
-//	{
-//		m[k*i] = x*i;
-//	}
-//	
-//	const int z = k*(n/2);
-//	const dstd::map<int, double>::iterator it = m.insert(dstd::pair<int,double>(z, x*z)).first;
-//	
-//	t.testEqual("map::find 1", m.find(z), it);
-//	t.testEqual("map::find 2", m.find(-1), m.end());
-//}
-//
-////count
-//
-//{
-//	dstd::map<int, double> m;
-//	t.testEqual("map::count [empty]", m.count(3), empty_size);
-//}
-//
-//{
-//	const unsigned int n = 4;
-//	dstd::map<unsigned int, double> m;
-//	for(unsigned int i = 0; i < n; ++i)
-//	{
-//		for(unsigned int j = 0; j < i; ++j)
-//		{
-//			m.insert(dstd::pair<unsigned int,double>(i, 3.14));
-//		}
-//	}
-//	for(unsigned int i = 0; i < n; ++i)
-//	{
-//		t.testEqual("map::count 0-n", m.count(i), size_t( i > 0 ) );
-//	}
-//}
-//
-////lower_bound
-//
-//{
-//	dstd::map<int, char> m;
-//	t.testEqual("map::lower_bound [empty]", m.lower_bound(3), m.end());
-//}
-//
-//{
-//	const int n = 10;
-//	//const double x = 3.14;
-//	dstd::map<int, double> m;
-//	for(unsigned int i = 0; i < n; ++i)
-//	{
-//		if( i != n/2 ) m.insert( dstd::pair<int,double>( i, i*n ) );
-//	}
-//	
-//	dstd::map<int, double>::iterator it;
-//	
-//	it = m.lower_bound(-1);
-//	t.testEqual( "map::lower_bound 1", it->first, 0 );
-//	
-//	it = m.lower_bound(1);
-//	t.testEqual( "map::lower_bound 2", it->first, 1 );
-//	
-//	it = m.lower_bound(n/2);
-//	t.testEqual( "map::lower_bound 3", it->first, (n/2)+1 );
-//	
-//	it = m.lower_bound(2*n);
-//	t.testEqual( "map::lower_bound 4", it, m.end() );
-//}
-//
-////upper_bound
+
+
+/// Searches the container for an element with a key equivalent to k and returns an iterator to it if found,
+/// otherwise it returns an iterator to map::end.
+// iterator find(const key_type& k)
+// const_iterator find(const key_type& k) const
+
+
+TEST_F(Map, findReturnsEndForNonExistantKey)
+{
+	ASSERT_EQ( twenty_squares.end(), twenty_squares.find(-1) );
+}
+
+
+TEST_F(Map, findReturnsIteratorToCorrectElement)
+{
+	const int i = 12;
+	const dstd::map<int,int>::value_type expected( i, i*i );
+	
+	const dstd::map<int,int>::iterator result = twenty_squares.find(i);
+	
+	//ASSERT_EQ( expected , *result );
+	ASSERT_TRUE( equals(expected, *result) );
+}
+
+
+// size_type count(const key_type& k) const
+
+
+TEST_F(Map, countReturnsOneForExistingKey)
+{
+	ASSERT_EQ( 1, twenty_squares.count(10) );
+}
+
+
+TEST_F(Map, countReturnsOneForNonexistingKey)
+{
+	ASSERT_EQ( 0, twenty_squares.count(-10) );
+}
+
+
+// iterator lower_bound(const key_type& key)
+// const_iterator lower_bound(const key_type& key) const
+
+
+TEST_F(Map, lowerBoundReturnsIteratorToValueForExistingKey)
+{
+	const int existing_key = 10;
+	dstd::map<int,int>::const_iterator expected = twenty_squares.find(existing_key);
+	
+	ASSERT_EQ( existing_key, twenty_squares.lower_bound(existing_key)->first );
+}
+
+
+TEST_F(Map, lowerBoundReturnsIteratorToFirstKeyNotLessThanNonexistingKey)
+{
+	dstd::map<int,int> test_map;
+	test_map.insert( dstd::pair<int,int>(10,10) );
+	test_map.insert( dstd::pair<int,int>(20,20) );
+	test_map.insert( dstd::pair<int,int>(30,30) );
+	
+	ASSERT_EQ( 20, twenty_squares.lower_bound(15)->first );
+}
+
+
+TEST_F(Map, lowerBoundReturnsIteratorToBeginForNonexistingKeyBeforeAllOtherKeys)
+{
+	ASSERT_EQ( twenty_squares.begin()->first, twenty_squares.lower_bound(-10)->first );
+}
+
+
+TEST_F(Map, lowerBoundReturnsIteratorToEndForNonexistingKeyAfterAllOtherKeys)
+{
+	ASSERT_EQ( twenty_squares.end(), twenty_squares.lower_bound(999) );
+}
+
+
+// iterator upper_bound(const key_type& key)
+// const_iterator upper_bound(const key_type& key) const
+
+
+TEST_F(Map, upperBoundReturnsIteratorToFirstKeyAfterExistingKey)
+{
+	ASSERT_EQ( 11, twenty_squares.upper_bound(10)->first );
+}
+
+
+TEST_F(Map, upperBoundReturnsIteratorToFirstKeyGreaterThanNonexistingKey)
+{
+	dstd::map<int,int> test_map;
+	test_map.insert( dstd::pair<int,int>(10,10) );
+	test_map.insert( dstd::pair<int,int>(20,20) );
+	test_map.insert( dstd::pair<int,int>(30,30) );
+	
+	ASSERT_EQ( 20, twenty_squares.lower_bound(15)->first );
+}
+
+
+TEST_F(Map, upperBoundReturnsIteratorToBeginForNonexistingKeyBeforeAllOtherKeys)
+{
+	ASSERT_EQ( twenty_squares.begin()->first, twenty_squares.lower_bound(-10)->first );
+}
+
+
+TEST_F(Map, upperBoundReturnsIteratorToEndForNonexistingKeyAfterAllOtherKeys)
+{
+	ASSERT_EQ( twenty_squares.end(), twenty_squares.lower_bound(999) );
+}
+
+
 //
 //{
 //	dstd::map<int, char> m;
