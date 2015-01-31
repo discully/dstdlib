@@ -17,8 +17,8 @@
 
 namespace dstd
 {
-	template < class Key, class T, class Compare, class Allocator > class map;
-	template < class Key, class T, class Compare, class Allocator > class multimap;
+	template < class Key, class T, class Compare = dstd::less<Key>, class Allocator = dstd::allocator<T> > class map;
+	template < class Key, class T, class Compare = dstd::less<Key>, class Allocator = dstd::allocator<T> > class multimap;
 }
 
 
@@ -26,7 +26,7 @@ namespace dstd
 //
 // dstd::map
 
-template < class Key, class T, class Compare = dstd::less<Key>, class Allocator = dstd::allocator<T> >
+template < class Key, class T, class Compare, class Allocator >
 class dstd::map : public dstd::impl::map_base<Key, T, Compare, Allocator, false>
 {
 	private:
@@ -226,7 +226,7 @@ bool operator!=(const dstd::map<Key,T>& a, const dstd::map<Key,T>& b)
 //
 // dstd::multimap
 
-template < class Key, class T, class Compare = dstd::less<Key>, class Allocator = dstd::allocator<T> >
+template < class Key, class T, class Compare, class Allocator >
 class dstd::multimap : public dstd::impl::map_base<Key, T, Compare, Allocator, true>
 {
 	private:
