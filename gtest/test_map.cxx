@@ -645,7 +645,7 @@ TEST_F(Map, lowerBoundReturnsIteratorToFirstKeyNotLessThanNonexistingKey)
 	test_map.insert( dstd::pair<int,int>(20,20) );
 	test_map.insert( dstd::pair<int,int>(30,30) );
 	
-	ASSERT_EQ( 20, twenty_squares.lower_bound(15)->first );
+	ASSERT_EQ( 20, test_map.lower_bound(15)->first );
 }
 
 
@@ -678,7 +678,7 @@ TEST_F(Map, upperBoundReturnsIteratorToFirstKeyGreaterThanNonexistingKey)
 	test_map.insert( dstd::pair<int,int>(20,20) );
 	test_map.insert( dstd::pair<int,int>(30,30) );
 	
-	ASSERT_EQ( 20, twenty_squares.lower_bound(15)->first );
+	ASSERT_EQ( 20, test_map.lower_bound(15)->first );
 }
 
 
@@ -718,7 +718,7 @@ TEST_F(Map, equalRangeReturnsExpectedRangeForNonexistingKey)
 	test_map.insert( dstd::pair<int,int>(20,20) );
 	test_map.insert( dstd::pair<int,int>(30,30) );
 	
-	Range result = twenty_squares.equal_range(15);
+	Range result = test_map.equal_range(15);
 	
 	ASSERT_EQ( 20, result.first->first );
 	ASSERT_EQ( 20, result.second->first );
