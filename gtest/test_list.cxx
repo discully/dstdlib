@@ -61,6 +61,16 @@ class BothOdd
 };
 
 
+class IsOdd
+{
+	public:
+		bool operator() (const int& n) const
+		{
+			return ( (n % 2) != 0 );
+		}
+};
+
+
 	
 // explicit list (const allocator_type& alloc = allocator_type())
 //
