@@ -348,12 +348,14 @@ class dstd::list
 		}
 		
 		
+		// todo: should be const_iterator
 		void splice(iterator position, list& x)
 		{
 			this->splice(position, x, x.begin(), x.end());
 		}
 		
 		
+		// todo: should be const_iterator
 		void splice (iterator position, list& x, iterator i)
 		{
 			x.unhook(i);
@@ -361,6 +363,7 @@ class dstd::list
 		}
 		
 		
+		// todo: should be const_iterator
 		void splice (iterator position, list& x, iterator first, iterator last)
 		{
 			if( first != last )
