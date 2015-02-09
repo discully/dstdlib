@@ -73,8 +73,12 @@ class IsOdd
 
 	
 // explicit list (const allocator_type& alloc = allocator_type())
-//
-// todo
+
+
+TEST_F(List, defaultConstructorCreatesEmptyList)
+{
+	ASSERT_TRUE( dstd::list<double>().empty() );
+}
 
 
 // explicit list(size_t n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
