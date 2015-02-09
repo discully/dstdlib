@@ -1096,8 +1096,31 @@ TEST_F(List, uniquePredDoesNotRemoveNonConsecutivePredElements)
 
 
 // void reverse()
-//
-// todo
+
+
+TEST_F(List, reverseLeavesSizeUnaffected)
+{
+	const size_t size_before = one_to_ten.size();
+	
+	one_to_ten.reverse();
+	
+	ASSERT_EQ(size_before, one_to_ten.size());
+}
+
+
+TEST_F(List, reverseReversesOrder)
+{
+	dstd::list<int> original = one_to_ten;
+	
+	one_to_ten.reverse();
+	
+	dstd::list<int>::const_reverse_iterator orig = original.rbegin();
+	for(dstd::list<int>::const_iterator it = one_to_ten.begin(); it != one_to_ten.end(); ++it)
+	{
+		ASSERT_EQ(*orig, *it);
+		++orig;
+	}
+}
 
 
 // allocator_type get_allocator() const
