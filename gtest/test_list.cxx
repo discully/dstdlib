@@ -958,8 +958,19 @@ TEST_F(List, removeWithNonexistantValueLeavesListUnchanged)
 
 
 // template <class Predicate> void remove_if(Predicate pred)
-//
-// todo
+
+
+TEST_F(List, removeIfRemovesElementsSatisfyingPredicate)
+{
+	const IsOdd pred;
+	
+	one_to_ten.remove_if(pred);
+	
+	for(dstd::list<int>::const_iterator it = one_to_ten.begin(); it != one_to_ten.end(); ++it)
+	{
+		ASSERT_FALSE( pred(*it) );
+	}
+}
 
 
 // void unique()
