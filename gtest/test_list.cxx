@@ -722,18 +722,174 @@ TEST_F(List, clearLeavesListEmpty)
 
 
 // void splice(iterator position, list& x)
-//
-// todo
+
+
+TEST_F(List, spliceItListIncreasesSizeByNumberOfElementsInList)
+{
+	const size_t size_before = one_to_ten.size();
+	const size_t size_spliced = ntimesn.size();
+	
+	one_to_ten.splice(one_to_ten.begin(), ntimesn);
+	
+	ASSERT_EQ(size_before + size_spliced, one_to_ten.size() );
+}
+
+
+TEST_F(List, spliceItListLeavesSplicedListEmpty)
+{
+	one_to_ten.splice(one_to_ten.begin(), ntimesn);
+	
+	ASSERT_TRUE(ntimesn.empty());
+}
+
+
+TEST_F(List, spliceItListInsertsListBeforePosition)
+{
+	dstd::list<int>::iterator before = one_to_ten.begin();
+	++before;
+	++before;
+	dstd::list<int>::iterator position = before;
+	++position;
+	const int first_spliced = ntimesn.front();
+	const int last_spliced = ntimesn.back();
+	
+	one_to_ten.splice(position, ntimesn);
+	
+	ASSERT_EQ(*(++before), first_spliced);
+	ASSERT_EQ(*(--position), last_spliced);
+}
+
+
+TEST_F(List, spliceItListInsertsAllElementsFromList)
+{
+	const dstd::list<int> spliced(ntimesn);
+	
+	one_to_ten.splice(one_to_ten.begin(), ntimesn);
+	
+	dstd::list<int>::const_iterator result = one_to_ten.begin();
+	for(dstd::list<int>::const_iterator it = spliced.begin(); it != spliced.end(); ++it)
+	{
+		ASSERT_EQ(*it, *result);
+		++result;
+	}
+}
 
 
 // void splice (iterator position, list& x, iterator i)
-//
-// todo
+
+
+TEST_F(List, spliceItListItIncreasesSizeByOne)
+{
+	const size_t size_before = one_to_ten.size();
+	
+	one_to_ten.splice(one_to_ten.begin(), ntimesn, ntimesn.begin());
+	
+	ASSERT_EQ(size_before + 1, one_to_ten.size() );
+}
+
+
+TEST_F(List, spliceItListItReducesSplicedListSizeByOne)
+{
+	const size_t size_before = ntimesn.size();
+	
+	one_to_ten.splice(one_to_ten.begin(), ntimesn, ntimesn.begin());
+	
+	ASSERT_EQ(size_before - 1, ntimesn.size() );
+}
+
+
+TEST_F(List, spliceItListItInsertsListBeforePosition)
+{
+	dstd::list<int>::iterator before = one_to_ten.begin();
+	++before;
+	++before;
+	dstd::list<int>::iterator position = before;
+	++position;
+	const int spliced = ntimesn.front();
+	
+	one_to_ten.splice(position, ntimesn, ntimesn.begin());
+	
+	ASSERT_EQ(*(++before), spliced);
+	ASSERT_EQ(*(--position), spliced);
+}
 
 
 // void splice (iterator position, list& x, iterator first, iterator last)
-//
-// todo
+
+
+TEST_F(List, spliceItListItItIncreasesSizeByNumberOfElementsInRange)
+{
+	const size_t size_before = one_to_ten.size();
+	dstd::list<int>::iterator first = ntimesn.begin();
+	++first;
+	dstd::list<int>::iterator last = ntimesn.end();
+	--last;
+	const size_t size_range = ntimesn.size() - 2;
+	
+	one_to_ten.splice(one_to_ten.begin(), ntimesn, first, last);
+	
+	ASSERT_EQ(size_before + size_range, one_to_ten.size() );
+}
+
+
+TEST_F(List, spliceItListItItReducesSplicedListByNumberOfElementsInRange)
+{
+	const size_t size_before = ntimesn.size();
+	dstd::list<int>::iterator first = ntimesn.begin();
+	++first;
+	dstd::list<int>::iterator last = ntimesn.end();
+	--last;
+	const size_t size_range = ntimesn.size() - 2;
+	
+	one_to_ten.splice(one_to_ten.begin(), ntimesn, first, last);
+	
+	ASSERT_EQ(size_before - size_range, ntimesn.size() );
+}
+
+
+TEST_F(List, spliceItListItItInsertsRangeBeforePosition)
+{
+	dstd::list<int>::iterator before = one_to_ten.begin();
+	++before;
+	++before;
+	dstd::list<int>::iterator position = before;
+	++position;
+	dstd::list<int>::iterator first = ntimesn.begin();
+	++first;
+	dstd::list<int>::iterator last = ntimesn.end();
+	--last;
+	const int first_spliced = *first;
+	const int last_spliced = *last;
+	
+	one_to_ten.splice(position, ntimesn, first, last);
+	
+	ASSERT_EQ(*(++before), first_spliced);
+	ASSERT_EQ(*(--position), last_spliced);
+}
+
+
+TEST_F(List, spliceItListItItInsertsAllElementsFromList)
+{
+	dstd::list<int>::iterator before = one_to_ten.begin();
+	++before;
+	++before;
+	dstd::list<int>::iterator position = before;
+	++position;
+	dstd::list<int>::iterator first = ntimesn.begin();
+	++first;
+	dstd::list<int>::iterator last = ntimesn.end();
+	--last;
+	const dstd::list<int> spliced(first, last);
+	
+	one_to_ten.splice(one_to_ten.begin(), ntimesn, first, last);
+	
+	dstd::list<int>::const_iterator result = one_to_ten.begin();
+	for(dstd::list<int>::const_iterator it = spliced.begin(); it != spliced.end(); ++it)
+	{
+		ASSERT_EQ(*it, *result);
+		++result;
+	}
+}
 
 
 // void remove(const value_type& val)
