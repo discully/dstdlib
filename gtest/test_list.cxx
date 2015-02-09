@@ -82,13 +82,38 @@ TEST_F(List, defaultConstructorCreatesEmptyList)
 
 
 // explicit list(size_t n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
-//
-// todo
+
+
+TEST_F(List, constructorSizeValueCreatesListOfSizeN)
+{
+	const size_t n = 123;
+	
+	ASSERT_EQ( n, dstd::list<double>(n).size() );
+}
+
+
+TEST_F(List, constructorSizeValueCreatesListWithSpecifiedValue)
+{
+	const double pi = 3.14159;
+	
+	const dstd::list<double> result( 34, pi );
+	
+	for(dstd::list<double>::const_iterator it = result.begin(); it != result.end(); ++it)
+	{
+		ASSERT_EQ( pi, *it );
+	}
+}
 
 
 // template <class InputIterator> list (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
-//
-// todo
+
+
+TEST_F(List, constructorItItCreatesListWithCopiesOfElementsInRange)
+{
+	const dstd::list<int> result(one_to_ten.begin(), one_to_ten.end());
+	
+	ASSERT_EQ(one_to_ten, result);
+}
 
 
 // list(const list& x)
