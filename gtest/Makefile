@@ -7,7 +7,7 @@ test: test_vector test_map test_list
 
 test_%: makedir
 	$(CXX) $@.cxx -o $(OUTPUT_DIR)/$@ $(LIBS)
-	$(OUTPUT_DIR)/$@
+	$(OUTPUT_DIR)/$@ --gtest_output=xml:$@.xml
 
 makedir:
 	mkdir -p $(OUTPUT_DIR)
