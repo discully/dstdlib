@@ -4,3 +4,8 @@ a.out
 sandbox
 *.exe
 *.x
+*.test.xml
+doc
+others
+ref
+gtest/exe
