@@ -1,8 +1,8 @@
 #ifndef DSTD_IMPL_VECTOR_BASE_HXX
 #define DSTD_IMPL_VECTOR_BASE_HXX
 
-#include <cstddef>
-#include <limits>
+#include "../cstddef.hxx"
+#include "../limits.hxx"
 
 
 
@@ -31,7 +31,7 @@ class dstd::impl::vector_base
 
 		size_type max_size() const
 		{
-			return std::numeric_limits<size_type>::max();
+			return dstd::numeric_limits<size_type>::max();
 		}
 
 
