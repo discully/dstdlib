@@ -1,8 +1,6 @@
 #ifndef DSTD_VECTOR_HXX
 #define DSTD_VECTOR_HXX
 
-#include <algorithm>
-#include <cassert>
 #include <limits>
 #include <cstddef>
 
@@ -199,10 +197,10 @@ class dstd::vector
 		if( n > this->max_size() ) throw dstd::length_error();
 		
 		// Determine how much memory to request
-		unsigned int n_request = std::max<unsigned int>( this->capacity(), 2 );
+		unsigned int n_request = dstd::max<unsigned int>( this->capacity(), 2 );
 		while( n_request < n )
 		{
-			n_request = std::min<unsigned int>( this->max_size(), n_request*2 );
+			n_request = dstd::min<unsigned int>( this->max_size(), n_request*2 );
 		}
 		
 		assert( n_request >= n );

@@ -5,7 +5,15 @@ sandbox
 *.exe
 *.x
 *.test.xml
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.VC.opendb
+*.sdf
 doc
 others
 ref
 gtest/exe
+Debug
+Release
+.vs
