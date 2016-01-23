@@ -1,6 +1,9 @@
 #ifndef DSTD_IMPL_VECTOR_BASE_HXX
 #define DSTD_IMPL_VECTOR_BASE_HXX
 
+#include <cstddef>
+#include <limits>
+
 
 
 namespace dstd
@@ -22,7 +25,7 @@ class dstd::impl::vector_base
 
 		size_t size() const
 		{
-			return this->n_data;
+			return n_data;
 		}
 
 
@@ -34,13 +37,13 @@ class dstd::impl::vector_base
 
 		size_t capacity() const
 		{
-			return this->n_memory;
+			return n_memory;
 		}
 
 
 		bool empty() const
 		{
-			return (this->size() == 0);
+			return (size() == 0);
 		}
 
 
@@ -51,16 +54,23 @@ class dstd::impl::vector_base
 		{}
 
 
-		~vector_base(){}
+		~vector_base()
+		{}
 
 
 		size_type n_data;
+
 		size_type n_memory;
 
 
 	private:
 		
+
+		/// Not implemented
 		vector_base(const vector_base&);
+
+
+		/// Not implemented
 		vector_base& operator= (const vector_base&);
 };
 

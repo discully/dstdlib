@@ -1,15 +1,10 @@
 #ifndef DSTD_VECTOR_HXX
 #define DSTD_VECTOR_HXX
 
-#include <limits>
-#include <cstddef>
-
 #include "impl/bool_type.hxx"
 #include "impl/vector_impl.hxx"
 #include "impl/vector_iterator.hxx"
 #include "algorithm.hxx"
-#include "memory.hxx"
-#include "iterator.hxx"
 
 
 
@@ -53,19 +48,19 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	explicit vector(unsigned int n, const T& value = T())
 	{
-		this->assign(n, value);
+		assign(n, value);
 	}
 	
 	
 	vector(iterator first, iterator last)
 	{
-		this->assign(first, last);
+		assign(first, last);
 	}
 	
 	
 	vector(const vector& v)
 	{
-		this->assign<const_iterator>(v.begin(), v.end());
+		assign<const_iterator>(v.begin(), v.end());
 	}
 	
 	
@@ -75,8 +70,8 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	~vector()
 	{
-		this->clear();
-		if( this->p != 0 ) this->a.deallocate(this->p, this->n_memory);
+		clear();
+		if( p != 0 ) a.deallocate(p, n_memory);
 	}
 	
 	
@@ -86,7 +81,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	vector& operator= (const vector& v)
 	{
-		this->assign(v.begin(), v.end());
+		assign(v.begin(), v.end());
 		return *this;
 	}
 	
@@ -97,17 +92,17 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	void resize(size_t n, const T& value = T())
 	{
-		if( n < this->size() )
+		if( n < size() )
 		{
-			iterator first = this->begin() + n;
-			this->erase( first, this->end() );
+			iterator first = begin() + n;
+			erase( first, end() );
 		}
-		else if( n > this->size() )
+		else if( n > size() )
 		{
-			size_t n_add = n - this->size();
+			size_t n_add = n - size();
 			for(unsigned int i = 0; i != n_add; ++i)
 			{
-				this->push_back(value);
+				push_back(value);
 			}
 		}
 	}
@@ -119,71 +114,65 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	reference operator[](size_t i)
 	{
-		return this->p[i];
+		return p[i];
 	}
 	
 	
 	const_reference operator[](size_t i) const
 	{
-		return this->p[i];
+		return p[i];
 	}
 	
 	
 	reference at(size_t i)
 	{
-		if( i >= this->size() )
+		if( i >= size() )
 		{
 			throw dstd::out_of_range();
 		}
-		return (this->p)[i];
+		return p[i];
 	}
 	
 	
 	const_reference at(size_t i) const
 	{
-		if( i >= this->size() )
+		if( i >= size() )
 		{
 			throw dstd::out_of_range();
 		}
-		return (this->p)[i];
+		return p[i];
 	}
 	
 	
 	reference front()
 	{
-		return this->p[0];
+		return p[0];
 	}
 	
 	
 	const_reference front() const
 	{
-		return this->p[0];
+		return p[0];
 	}
 
 
 	reference back()
 	{
-		if( this->size() > 0 )
+		if( empty() )
 		{
-			return *(this->end() - 1);
+			return front();
 		}
-		else
-		{
-			return this->front();
-		}
+		return p[size() - 1];
 	}
 	
 	
 	const_reference back() const
 	{
-		if( this->empty() )
+		if( empty() )
 		{
-			return this->front();
+			return front();
 		}
-		else
-		{
-			return *(this->end() - 1);
-		}
+		return p[size() - 1];
 	}
 	
 	
@@ -194,27 +183,27 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	template <class InputIterator>
 	void assign(InputIterator first, InputIterator last)
 	{
-		this->clear();
-		this->insert(this->begin(), first, last);
+		clear();
+		insert(begin(), first, last);
 	}
 	
 	
 	void assign(size_t n, const value_type& value)
 	{
-		this->clear();
-		this->insert(this->begin(), n, value);
+		clear();
+		insert(begin(), n, value);
 	}
 	
 	
 	void push_back(const value_type& value)
 	{
-		this->insert( this->end(), value );
+		insert(end(), value);
 	}
 	
 	
 	void pop_back()
 	{
-		this->erase( this->end() - 1 );
+		erase(end() - 1);
 	}
 	
 	
@@ -235,13 +224,13 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	iterator insert(iterator position, const value_type& value)
 	{
-		return this->insertFix(position, 1, value, dstd::impl::TrueType());
+		return insert_value(position, 1, value);
 	}
 	
 	
 	void insert(iterator position, size_t n, const value_type& value)
 	{
-		this->insertFix(position, n, value, dstd::impl::TrueType());
+		insert_value(position, n, value);
 	}
 	
 	
@@ -249,13 +238,13 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	void insert(iterator position, InputIterator first, InputIterator last)
 	{
 		typedef typename dstd::impl::BoolType< std::numeric_limits<InputIterator>::is_integer >::bool_type is_integer;
-		this->insertFix( position, first, last, is_integer() );
+		insertFix( position, first, last, is_integer() );
 	}
 	
 	
 	iterator erase(iterator position)
 	{
-		return erase_range(position, position+1);
+		return erase_range(position, position + 1);
 	}
 
 
@@ -267,13 +256,13 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 
 	void swap(vector& v)
 	{
-		pointer temp_p = this->p;
-		size_t temp_n_data = this->size();
-		size_t temp_n_memory = this->capacity();
+		pointer temp_p = p;
+		size_t temp_n_data = size();
+		size_t temp_n_memory = capacity();
 		
-		this->p = v.p;
-		this->n_data = v.n_data;
-		this->n_memory = v.n_memory;
+		p = v.p;
+		n_data = v.n_data;
+		n_memory = v.n_memory;
 		
 		v.p = temp_p;
 		v.n_data = temp_n_data;
@@ -283,7 +272,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	void clear()		
 	{
-		this->erase(this->begin(), this->end());
+		erase(begin(), end());
 	}
 };
 

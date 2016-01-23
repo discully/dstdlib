@@ -3,6 +3,7 @@
 
 #include "vector_base.hxx"
 #include "../iterator.hxx"
+#include "../memory.hxx"
 
 
 
@@ -38,88 +39,88 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 
 		iterator begin()
 		{
-			return iterator(this->p);
+			return iterator(p);
 		}
 
 
 		const_iterator begin() const
 		{
-			return const_iterator(this->p);
+			return const_iterator(p);
 		}
 
 
 		iterator end()
 		{
-			return iterator(this->p + this->size());
+			return iterator(p + size());
 		}
 
 
 		const_iterator end() const
 		{
-			return const_iterator(this->p + this->size());
+			return const_iterator(p + size());
 		}
 
 
 		reverse_iterator rbegin()
 		{
-			return reverse_iterator(this->end());
+			return reverse_iterator(end());
 		}
 
 
 		const_reverse_iterator rbegin() const
 		{
-			return const_reverse_iterator(this->end());
+			return const_reverse_iterator(end());
 		}
 
 
 		reverse_iterator rend()
 		{
-			return reverse_iterator(this->begin());
+			return reverse_iterator(begin());
 		}
 
 
 		const_reverse_iterator rend() const
 		{
-			return const_reverse_iterator(this->begin());
+			return const_reverse_iterator(begin());
 		}
 
 		
 		void reserve(size_t n)
 		{
 			// Check if this request is necessary and valid
-			if (n <= this->capacity()) return;
-			if (n > this->max_size()) throw dstd::length_error();
+			if( n <= capacity() ) return;
+			if( n > max_size() ) throw dstd::length_error();
 
 			// Determine how much memory to request
-			unsigned int n_request = dstd::max<unsigned int>(this->capacity(), 2);
-			while (n_request < n)
+			unsigned int n_request = dstd::max<unsigned int>(capacity(), 2);
+			while( n_request < n )
 			{
-				n_request = dstd::min<unsigned int>(this->max_size(), n_request * 2);
+				n_request = dstd::min<unsigned int>(max_size(), n_request * 2);
 			}
 
 			assert(n_request >= n);
 
 			// Request new memory, and copy existing values to new memory
-			T* new_p = this->a.allocate(n_request);
-			for (unsigned int i = 0; i != this->size(); ++i)
+			T* new_p = a.allocate(n_request);
+			for(size_type i = 0; i != size(); ++i)
 			{
-				this->a.construct(&(new_p[i]), p[i]);
+				a.construct(new_p + i, p[i]);
 			}
 
 			// Move the vector to the new memory
-			unsigned int old_n_memory = this->n_memory;
-			T* old_p = this->p;
-			this->p = new_p;
-			this->n_memory = n_request;
+			unsigned int old_n_memory = n_memory;
+			T* old_p = p;
+			p = new_p;
+			n_memory = n_request;
 
-			if (old_p != 0)
+			if( old_p != 0 )
 			{
 				// Clean up the old memory
-				for (unsigned int i = 0; i != this->size(); ++i)
+				for(size_type i = 0; i != size(); ++i)
 				{
-					this->a.destroy(old_p + i);
+					a.destroy(old_p + i);
 				}
-				this->a.deallocate(old_p, old_n_memory);
+				a.deallocate(old_p, old_n_memory);
 			}
 		}
 
@@ -133,7 +134,7 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 
 		iterator erase_range(iterator first, iterator last)
 		{
-			if (first == last)
+			if( first == last )
 			{
 				return last;
 			}
@@ -142,17 +143,17 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 
 			iterator it_erase = first;
 			iterator it_shuffle = last;
-			const iterator it_end = this->end();
+			const iterator it_end = end();
 
 			// erase existing elements, and shuffle elements after last into the gap left behind
-			while (it_erase < it_end)
+			while( it_erase < it_end )
 			{
-				this->a.destroy(&(*it_erase));
+				a.destroy(&(*it_erase));
 
-				if (it_shuffle < this->end())
+				if( it_shuffle < end() )
 				{
-					this->a.construct(&(*it_erase), *it_shuffle);
-					this->a.destroy(&(*it_shuffle));
+					a.construct(&(*it_erase), *it_shuffle);
+					a.destroy(&(*it_shuffle));
 				}
 
 				++it_erase;
@@ -160,7 +161,7 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 			}
 
 			// update size
-			this->n_data -= n_remove;
+			n_data -= n_remove;
 
 			return first;
 		}
@@ -168,31 +169,31 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 
 		iterator insert_value(iterator position, size_t n, const value_type& value)
 		{
-			if (position > this->end() || position < this->begin())
+			if( position > end() || position < begin() )
 			{
 				throw dstd::out_of_range();
 			}
 
 			// Make sure there is sufficient capacity
-			if ((this->size() + n) > this->capacity())
+			if( (size() + n) > capacity() )
 			{
 				// If a reallocation occurs during reserve, position is invalidated
-				unsigned int i_position = static_cast<unsigned int>(position - this->begin());
-				this->reserve(this->size() + n);
-				position = this->begin() + i_position;
+				unsigned int i_position = static_cast<unsigned int>(position - begin());
+				reserve(size() + n);
+				position = begin() + i_position;
 			}
 
-			assert(this->capacity() >= (this->size() + n));
+			assert(capacity() >= (size() + n));
 
-			if (position < this->end())
+			if( position < end() )
 			{
 				// Shuffle the last n elements n positions along
-				iterator it_from = this->end() - 1;
+				iterator it_from = end() - 1;
 				iterator it_to = it_from + n;
-				while (it_from >= position)
+				while( it_from >= position )
 				{
-					this->a.construct(&(*it_to), *it_from);
-					this->a.destroy(&(*it_from));
+					a.construct(&(*it_to), *it_from);
+					a.destroy(&(*it_from));
 					--it_from;
 					--it_to;
 				}
@@ -200,14 +201,14 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 
 			// Insert the new elements into the gap
 			iterator it_to = position;
-			for (unsigned int i = 0; i != n; ++i)
+			for(size_type i = 0; i != n; ++i)
 			{
-				this->a.construct(&(*it_to), value);
+				a.construct(&(*it_to), value);
 				++it_to;
 			}
 
 			// The vector is now longer
-			this->n_data += n;
+			n_data += n;
 
 			return position;
 		}
@@ -216,35 +217,35 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 		template <class InputIterator>
 		iterator insert_range(iterator position, InputIterator first, InputIterator last)
 		{
-			if (position > this->end() || position < this->begin())
+			if( position > end() || position < begin() )
 			{
 				throw dstd::out_of_range();
 			}
-			else if (last < first)
+			else if( last < first )
 			{
 				throw dstd::out_of_range();
 			}
 
-			unsigned int n = static_cast< unsigned int >(last - first);
+			size_type n = static_cast< size_type >(last - first);
 
 			// Make sure there is sufficient capacity
-			if ((this->size() + n) > this->capacity())
+			if( (size() + n) > capacity() )
 			{
 				// If a reallocation occurs during reserve, position is invalidated
-				unsigned int i_position = static_cast<unsigned int>(position - this->begin());
-				this->reserve(this->size() + n);
-				position = this->begin() + i_position;
+				unsigned int i_position = static_cast<unsigned int>(position - begin());
+				reserve(size() + n);
+				position = begin() + i_position;
 			}
 
-			if (position < this->end())
+			if( position < end() )
 			{
 				// Shuffle the last n elements n positions along
-				iterator it_from = this->end() - 1;
+				iterator it_from = end() - 1;
 				iterator it_to = it_from + n;
-				while (it_from >= position)
+				while( it_from >= position )
 				{
-					this->a.construct(&(*it_to), *it_from);
-					this->a.destroy(&(*it_from));
+					a.construct(&(*it_to), *it_from);
+					a.destroy(&(*it_from));
 					--it_from;
 					--it_to;
 				}
@@ -253,15 +254,15 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 			// Insert the new elements into the gap
 			InputIterator it_from = first;
 			iterator it_to = position;
-			while (it_from < last)
+			while( it_from < last )
 			{
-				this->a.construct(&(*it_to), *it_from);
+				a.construct(&(*it_to), *it_from);
 				++it_from;
 				++it_to;
 			}
 
 			// The vector is now longer
-			this->n_data += n;
+			n_data += n;
 
 			return position;
 		}
