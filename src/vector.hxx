@@ -5,7 +5,8 @@
 #include <cstddef>
 
 #include "impl/bool_type.hxx"
-#include "impl/vector_base.hxx"
+#include "impl/vector_impl.hxx"
+#include "impl/vector_iterator.hxx"
 #include "algorithm.hxx"
 #include "memory.hxx"
 #include "iterator.hxx"
@@ -24,21 +25,21 @@ namespace dstd
 // Vector
 
 template < class T, class Allocator = dstd::allocator<T> >
-class dstd::vector
-	: public dstd::impl::vector_base
+class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 {
 	public:
 	
-	typedef T value_type;
-	typedef Allocator allocator_type;
-	typedef typename allocator_type::reference reference;
-	typedef typename allocator_type::const_reference const_reference;
-	typedef typename allocator_type::pointer pointer;
-	typedef typename allocator_type::const_pointer const_pointer;
-	typedef impl::vector_base::size_type size_type;
-	typedef ptrdiff_t difference_type;
-	class iterator;
-	class const_iterator;
+	typedef typename impl::vector_impl<T,Allocator>::value_type value_type;
+	typedef typename impl::vector_impl<T,Allocator>::allocator_type allocator_type;
+	typedef typename impl::vector_impl<T,Allocator>::reference reference;
+	typedef typename impl::vector_impl<T,Allocator>::const_reference const_reference;
+	typedef typename impl::vector_impl<T,Allocator>::pointer pointer;
+	typedef typename impl::vector_impl<T,Allocator>::const_pointer const_pointer;
+	typedef typename impl::vector_impl<T,Allocator>::size_type size_type;
+	typedef typename impl::vector_impl<T,Allocator>::difference_type difference_type;
+
+	typedef impl::vector_impl<T,Allocator>::iterator iterator;
+	typedef impl::vector_impl<T,Allocator>::const_iterator const_iterator;
 	typedef dstd::reverse_iterator< iterator > reverse_iterator;
 	typedef dstd::reverse_iterator< const_iterator > const_reverse_iterator;
 	
@@ -47,26 +48,22 @@ class dstd::vector
 	// Constructors
 	
 	explicit vector()
-		: p(0)
 	{}
 	
 	
 	explicit vector(unsigned int n, const T& value = T())
-		: p(0)
 	{
 		this->assign(n, value);
 	}
 	
 	
 	vector(iterator first, iterator last)
-		: p(0)
 	{
 		this->assign(first, last);
 	}
 	
 	
 	vector(const vector& v)
-		: p(0)
 	{
 		this->assign<const_iterator>(v.begin(), v.end());
 	}
@@ -168,46 +165,6 @@ class dstd::vector
 	}
 	
 	
-	void reserve(size_t n)
-	{
-		// Check if this request is necessary and valid
-		if( n <= this->capacity() ) return;
-		if( n > this->max_size() ) throw dstd::length_error();
-		
-		// Determine how much memory to request
-		unsigned int n_request = dstd::max<unsigned int>( this->capacity(), 2 );
-		while( n_request < n )
-		{
-			n_request = dstd::min<unsigned int>( this->max_size(), n_request*2 );
-		}
-		
-		assert( n_request >= n );
-		
-		// Request new memory, and copy existing values to new memory
-		T* new_p = this->a.allocate( n_request );
-		for(unsigned int i = 0; i != this->size(); ++i)
-		{
-			this->a.construct( &(new_p[i]), (*this)[i] );
-		}
-		
-		// Move the vector to the new memory
-		unsigned int old_n_memory = this->n_memory;
-		T* old_p = this->p;
-		this->p = new_p;
-		this->n_memory = n_request;
-		
-		if( old_p != 0 )
-		{
-			// Clean up the old memory
-			for(unsigned int i = 0; i != this->size(); ++i)
-			{
-				this->a.destroy( old_p + i );
-			}
-			this->a.deallocate(old_p, old_n_memory);
-		}
-	}
-	
-	
 	//
 	// Element access
 	
@@ -289,14 +246,6 @@ class dstd::vector
 	template <class InputIterator>
 	void assign(InputIterator first, InputIterator last)
 	{
-		//this->erase(this->begin(), this->end());
-		//this->reserve( last - first );
-		//InputIterator it_from = first;
-		//while( it_from < last )
-		//{
-		//	this->push_back( *it_from );
-		//	++it_from;
-		//}
 		this->clear();
 		this->insert(this->begin(), first, last);
 	}
@@ -304,13 +253,6 @@ class dstd::vector
 	
 	void assign(size_t n, const value_type& value)
 	{
-		//this->erase(this->begin(), this->end());
-		//this->reserve(n);
-		//for(unsigned int i = 0; i != n; ++i)
-		//{
-		//	this->p[i] = value;
-		//	++(this->n_data);
-		//}
 		this->clear();
 		this->insert(this->begin(), n, value);
 	}
@@ -331,102 +273,14 @@ class dstd::vector
 	private:
 	iterator insertFix(iterator position, size_t n, const value_type& value, dstd::impl::TrueType)
 	{
-		if( position > this->end() || position < this->begin() )
-		{
-			throw dstd::out_of_range();
-		}
-		
-		// Make sure there is sufficient capacity
-		if( (this->size() + n) > this->capacity() )
-		{
-			// If a reallocation occurs during reserve, position is invalidated
-			unsigned int i_position = static_cast<unsigned int>( position - this->begin() );
-			this->reserve( this->size() + n );
-			position = this->begin() + i_position;
-		}
-		
-		assert( this->capacity() >= (this->size() + n) );
-		
-		if( position < this->end() )
-		{
-			// Shuffle the last n elements n positions along
-			iterator it_from = this->end() - 1;
-			iterator it_to = it_from + n;
-			while( it_from >= position )
-			{
-				this->a.construct( &(*it_to), *it_from );
-				this->a.destroy( &(*it_from) );
-				--it_from;
-				--it_to;
-			}
-		}
-		
-		// Insert the new elements into the gap
-		iterator it_to = position;
-		for(unsigned int i = 0; i != n; ++i)
-		{
-			this->a.construct( &(*it_to), value );
-			++it_to;
-		}
-		
-		// The vector is now longer
-		this->n_data += n;
-		
-		return position;
+		return insert_value(position, n, value);
 	}
 	
 	
 	template <class InputIterator>
 	iterator insertFix(iterator position, InputIterator first, InputIterator last, dstd::impl::FalseType)
 	{
-		if( position > this->end() || position < this->begin() )
-		{
-			throw dstd::out_of_range();
-		}
-		else if( last < first )
-		{
-			throw dstd::out_of_range();
-		}
-		
-		unsigned int n = static_cast< unsigned int >( last - first );
-		
-		// Make sure there is sufficient capacity
-		if( (this->size() + n) > this->capacity() )
-		{
-			// If a reallocation occurs during reserve, position is invalidated
-			unsigned int i_position = static_cast<unsigned int>( position - this->begin() );
-			this->reserve( this->size() + n );
-			position = this->begin() + i_position; 
-		}
-		
-		if( position < this->end() )
-		{
-			// Shuffle the last n elements n positions along
-			iterator it_from = this->end() - 1;
-			iterator it_to = it_from + n;
-			while( it_from >= position )
-			{
-				this->a.construct( &(*it_to), *it_from );
-				this->a.destroy( &(*it_from) );
-				--it_from;
-				--it_to;
-			}
-		}
-		
-		// Insert the new elements into the gap
-		InputIterator it_from = first;
-		iterator it_to = position;
-		while( it_from < last )
-		{
-			this->a.construct( &(*it_to), *it_from );
-			++it_from;
-			++it_to;
-		}
-		
-		// The vector is now longer
-		this->n_data += n;
-		
-		return position;
+		return insert_range(position, first, last);
 	}
 	public:
 	
@@ -453,42 +307,13 @@ class dstd::vector
 	
 	iterator erase(iterator position)
 	{
-		return this->erase(position, position+1);
+		return erase_range(position, position+1);
 	}
-	
-	
+
+
 	iterator erase(iterator first, iterator last)
 	{
-		if( first == last )
-		{
-			return last;
-		}
-		
-		unsigned int n_remove = static_cast<unsigned int>( last - first );
-		
-		iterator it_erase = first;
-		iterator it_shuffle = last;
-		const iterator it_end = this->end();
-		
-		// erase existing elements, and shuffle elements after last into the gap left behind
-		while( it_erase < it_end )
-		{
-			this->a.destroy( &(*it_erase) );
-			
-			if( it_shuffle < this->end() )
-			{
-				this->a.construct( &(*it_erase), *it_shuffle);
-				this->a.destroy( &(*it_shuffle) );
-			}
-			
-			++it_erase;
-			++it_shuffle;
-		}
-		
-		// update size
-		this->n_data -= n_remove;
-		
-		return first;
+		return erase_range(first, last);
 	}
 
 
@@ -512,117 +337,6 @@ class dstd::vector
 	{
 		this->erase(this->begin(), this->end());
 	}
-	
-	
-	private:
-	
-	allocator_type a;
-	pointer p;
-};
-
-
-
-//
-// Vector Iterators
-//
-
-template <class T, class Allocator>
-class dstd::vector<T, Allocator>::iterator
-{
-	public:
-		
-		typedef typename dstd::vector<T, Allocator>::value_type value_type;
-		typedef typename dstd::vector<T, Allocator>::reference reference;
-		typedef typename dstd::vector<T, Allocator>::pointer pointer;
-		typedef typename dstd::vector<T, Allocator>::size_type size_type;
-		typedef typename dstd::vector<T, Allocator>::difference_type difference_type;
-		
-		iterator(pointer ptr = 0) : p(ptr) {}
-		iterator(const iterator& it) : p( it.p ) {}
-		reference operator* () const { return *(this->p); }
-		pointer operator-> () const { return this->p; }
-		iterator& operator=(const iterator& rhs) { this->p = rhs.p; return *this; }
-		// Operators with int
-		iterator& operator+=(const int& n){ this->p += n; return (*this); }
-		iterator& operator-=(const int& n){ this->p -= n; return (*this); }
-		iterator operator+ (const int& n){ iterator it(*this); it += n; return it; }
-		iterator operator- (const int& n){ iterator it(*this); it -= n; return it; }
-		// Operators with iterators
-		int operator- (const iterator& rhs){ return this->p - rhs.p; }
-		iterator& operator++() { (*this) += 1; return (*this); }
-		iterator& operator++(int) { iterator temp(*this); ++(*this); return temp; }
-		iterator& operator--() { (*this) -= 1; return (*this); }
-		iterator& operator--(int) { iterator temp(*this); --(*this); return temp; }
-		bool operator==(const iterator& rhs) const { return ( this->p == rhs.p ); }
-		bool operator==(const const_iterator& rhs) const { return ( this->p == rhs.p ); }
-		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator< (const iterator& rhs) const { return ( this->p < rhs.p ); }
-		bool operator< (const const_iterator& rhs) const { return ( this->p < rhs.p ); }
-		bool operator> (const iterator& rhs) const { return ( this->p > rhs.p ); }
-		bool operator> (const const_iterator& rhs) const { return ( this->p > rhs.p ); }
-		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
-		bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
-	
-	private:
-		
-		T* p;
-	
-	friend class const_iterator;
-};
-
-
-
-template <class T, class Allocator>
-class dstd::vector<T, Allocator>::const_iterator
-{
-	public:
-		
-		typedef typename dstd::vector<T, Allocator>::value_type value_type;
-		typedef typename dstd::vector<T, Allocator>::const_reference  reference;
-		typedef typename dstd::vector<T, Allocator>::const_pointer  pointer;
-		typedef typename dstd::vector<T, Allocator>::size_type size_type;
-		typedef typename dstd::vector<T, Allocator>::difference_type difference_type;
-		
-		const_iterator(pointer ptr = 0) : p(ptr) {}
-		const_iterator(const const_iterator& it) : p( it.p ) {}
-		const_iterator(const iterator& it) : p( it.p ) {}
-		reference operator* () const { return *(this->p); }
-		pointer operator-> () const { return this->p; }
-		const_iterator& operator=(const const_iterator& rhs) { this->p = rhs.p; return *this; }
-		const_iterator& operator=(const iterator& rhs) { this->p = rhs.p; return *this; }
-		// Operators with int
-		const_iterator& operator+=(const int& n){ this->p += n; return (*this); }
-		const_iterator& operator-=(const int& n){ this->p -= n; return (*this); }
-		const_iterator operator+ (const int& n){ const_iterator it(*this); it += n; return it; }
-		const_iterator operator- (const int& n){ const_iterator it(*this); it -= n; return it; }
-		// Operators with iterators
-		int operator- (const const_iterator& rhs){ return this->p - rhs.p; }
-		const_iterator& operator++() { (*this) += 1; return (*this); }
-		const_iterator& operator++(int) { const_iterator temp(*this); ++(*this); return temp; }
-		const_iterator& operator--() { (*this) -= 1; return (*this); }
-		const_iterator& operator--(int) { const_iterator temp(*this); --(*this); return temp; }
-		
-		bool operator==(const const_iterator& rhs) const { return ( this->p == rhs.p ); }
-		bool operator==(const iterator& rhs) const { return ( this->p == rhs.p ); }
-		bool operator!=(const const_iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator!=(const iterator& rhs) const { return ! ( *this == rhs ); }
-		bool operator< (const const_iterator& rhs) const { return ( this->p < rhs.p ); }
-		bool operator< (const iterator& rhs) const { return ( this->p < rhs.p ); }
-		bool operator> (const const_iterator& rhs) const { return ( this->p > rhs.p ); }
-		bool operator> (const iterator& rhs) const { return ( this->p > rhs.p ); }
-		bool operator<=(const const_iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator<=(const iterator& rhs) const { return ! ( *this > rhs ); }
-		bool operator>=(const const_iterator& rhs) const { return ! ( *this < rhs ); }
-		bool operator>=(const iterator& rhs) const { return ! ( *this < rhs ); }
-	
-	private:
-		
-		pointer p;
-	
-	friend class iterator;
 };
 
 
