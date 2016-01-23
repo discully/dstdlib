@@ -39,7 +39,7 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 
 		~vector_impl()
 		{
-			clear();
+			erase_range(begin(), end());
 			if( p != 0 ) a.deallocate(p, n_memory);
 		}
 
@@ -92,7 +92,7 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 		}
 
 		
-		void reserve(size_t n)
+		void reserve(size_type n)
 		{
 			// Check if this request is necessary and valid
 			if( n <= capacity() ) return;
@@ -174,7 +174,7 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 		}
 
 
-		iterator insert_value(iterator position, size_t n, const value_type& value)
+		iterator insert_value(iterator position, size_type n, const value_type& value)
 		{
 			if( position > end() || position < begin() )
 			{

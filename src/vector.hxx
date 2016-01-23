@@ -87,7 +87,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	// Capacity
 	
 	
-	void resize(size_t n, const T& value = T())
+	void resize(size_type n, const T& value = T())
 	{
 		if( n < size() )
 		{
@@ -96,7 +96,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 		}
 		else if( n > size() )
 		{
-			size_t n_add = n - size();
+			size_type n_add = n - size();
 			for(unsigned int i = 0; i != n_add; ++i)
 			{
 				push_back(value);
@@ -109,19 +109,19 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	// Element access
 	
 	
-	reference operator[](size_t i)
+	reference operator[](size_type i)
 	{
 		return p[i];
 	}
 	
 	
-	const_reference operator[](size_t i) const
+	const_reference operator[](size_type i) const
 	{
 		return p[i];
 	}
 	
 	
-	reference at(size_t i)
+	reference at(size_type i)
 	{
 		if( i >= size() )
 		{
@@ -131,7 +131,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	}
 	
 	
-	const_reference at(size_t i) const
+	const_reference at(size_type i) const
 	{
 		if( i >= size() )
 		{
@@ -185,7 +185,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	}
 	
 	
-	void assign(size_t n, const value_type& value)
+	void assign(size_type n, const value_type& value)
 	{
 		clear();
 		insert(begin(), n, value);
@@ -210,7 +210,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	}
 	
 	
-	void insert(iterator position, size_t n, const value_type& value)
+	void insert(iterator position, size_type n, const value_type& value)
 	{
 		insert_value(position, n, value);
 	}
@@ -239,8 +239,8 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	void swap(vector& v)
 	{
 		pointer temp_p = p;
-		size_t temp_n_data = size();
-		size_t temp_n_memory = capacity();
+		size_type temp_n_data = size();
+		size_type temp_n_memory = capacity();
 		
 		p = v.p;
 		n_data = v.n_data;
@@ -261,7 +261,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 private:
 
 
-	iterator insert_fix(iterator position, size_t n, const value_type& value, dstd::impl::TrueType)
+	iterator insert_fix(iterator position, size_type n, const value_type& value, dstd::impl::TrueType)
 	{
 		return insert_value(position, n, value);
 	}
@@ -302,7 +302,9 @@ bool operator!= (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allo
 template <class T, class Allocator>
 bool operator< (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allocator>& rhs)
 {
-	size_t n = dstd::min(lhs.size(), rhs.size());
+	typedef dstd::vector<T,Allocator>::size_type size_type;
+	
+	const size_type n = dstd::min(lhs.size(), rhs.size());
 	
 	for(unsigned int i = 0; i < n; ++i)
 	{
@@ -334,7 +336,9 @@ bool operator< (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Alloc
 template <class T, class Allocator>
 bool operator<= (const dstd::vector<T,Allocator>& lhs, const dstd::vector<T,Allocator>& rhs)
 {
-	size_t n = dstd::min(lhs.size(), rhs.size());
+	typedef dstd::vector<T, Allocator>::size_type size_type;
+
+	const size_type n = dstd::min(lhs.size(), rhs.size());
 	
 	for(unsigned int i = 0; i < n; ++i)
 	{

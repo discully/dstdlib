@@ -23,19 +23,19 @@ class dstd::impl::vector_base
 		typedef size_t size_type;
 
 
-		size_t size() const
+		size_type size() const
 		{
 			return n_data;
 		}
 
 
-		size_t max_size() const
+		size_type max_size() const
 		{
-			return std::numeric_limits<size_t>::max();
+			return std::numeric_limits<size_type>::max();
 		}
 
 
-		size_t capacity() const
+		size_type capacity() const
 		{
 			return n_memory;
 		}
