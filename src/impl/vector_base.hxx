@@ -54,13 +54,14 @@ class dstd::impl::vector_base
 		~vector_base(){}
 
 
-		vector_base(const vector_base&)
-			: n_data(0), n_memory(0)
-		{}
-
-
 		size_type n_data;
 		size_type n_memory;
+
+
+	private:
+		
+		vector_base(const vector_base&);
+		vector_base& operator= (const vector_base&);
 };
 
 
