@@ -92,58 +92,6 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	
 	//
-	// Iterators
-	
-	
-	iterator begin()
-	{
-		return iterator( this->p );
-	}
-	
-	
-	const_iterator begin() const
-	{
-		return const_iterator( this->p );
-	}
-
-
-	iterator end()
-	{
-		return iterator( this->p + this->size() );
-	}
-	
-	
-	const_iterator end() const
-	{
-		return const_iterator( this->p + this->size() );
-	}
-
-
-	reverse_iterator rbegin()
-	{
-		return reverse_iterator( this->end() );
-	}
-	
-	
-	const_reverse_iterator rbegin() const
-	{
-		return const_reverse_iterator( this->end() );
-	}
-	
-	
-	reverse_iterator rend()
-	{
-		return reverse_iterator( this->begin() );
-	}
-	
-	
-	const_reverse_iterator rend() const
-	{
-		return const_reverse_iterator( this->begin() );
-	}
-	
-	
-	//
 	// Capacity
 	
 	
