@@ -207,21 +207,6 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	}
 	
 	
-	private:
-	iterator insertFix(iterator position, size_t n, const value_type& value, dstd::impl::TrueType)
-	{
-		return insert_value(position, n, value);
-	}
-	
-	
-	template <class InputIterator>
-	iterator insertFix(iterator position, InputIterator first, InputIterator last, dstd::impl::FalseType)
-	{
-		return insert_range(position, first, last);
-	}
-	public:
-	
-	
 	iterator insert(iterator position, const value_type& value)
 	{
 		return insert_value(position, 1, value);
@@ -238,7 +223,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	void insert(iterator position, InputIterator first, InputIterator last)
 	{
 		typedef typename dstd::impl::BoolType< std::numeric_limits<InputIterator>::is_integer >::bool_type is_integer;
-		insertFix( position, first, last, is_integer() );
+		insert_fix( position, first, last, is_integer() );
 	}
 	
 	
@@ -273,6 +258,22 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	void clear()		
 	{
 		erase(begin(), end());
+	}
+
+
+private:
+
+
+	iterator insert_fix(iterator position, size_t n, const value_type& value, dstd::impl::TrueType)
+	{
+		return insert_value(position, n, value);
+	}
+
+
+	template <class InputIterator>
+	iterator insert_fix(iterator position, InputIterator first, InputIterator last, dstd::impl::FalseType)
+	{
+		return insert_range(position, first, last);
 	}
 };
 
