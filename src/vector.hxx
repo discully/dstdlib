@@ -5,6 +5,7 @@
 #include <cstddef>
 
 #include "impl/bool_type.hxx"
+#include "impl/vector_base.hxx"
 #include "algorithm.hxx"
 #include "memory.hxx"
 #include "iterator.hxx"
@@ -24,6 +25,7 @@ namespace dstd
 
 template < class T, class Allocator = dstd::allocator<T> >
 class dstd::vector
+	: public dstd::impl::vector_base
 {
 	public:
 	
@@ -33,7 +35,7 @@ class dstd::vector
 	typedef typename allocator_type::const_reference const_reference;
 	typedef typename allocator_type::pointer pointer;
 	typedef typename allocator_type::const_pointer const_pointer;
-	typedef size_t size_type;
+	typedef impl::vector_base::size_type size_type;
 	typedef ptrdiff_t difference_type;
 	class iterator;
 	class const_iterator;
@@ -45,26 +47,26 @@ class dstd::vector
 	// Constructors
 	
 	explicit vector()
-		: n_data(0), n_memory(0), p(0)
+		: p(0)
 	{}
 	
 	
 	explicit vector(unsigned int n, const T& value = T())
-		:n_data(0), n_memory(0), p(0)
+		: p(0)
 	{
 		this->assign(n, value);
 	}
 	
 	
 	vector(iterator first, iterator last)
-		: n_data(0), n_memory(0), p(0)
+		: p(0)
 	{
 		this->assign(first, last);
 	}
 	
 	
 	vector(const vector& v)
-		: n_data(0), n_memory(0), p(0)
+		: p(0)
 	{
 		this->assign<const_iterator>(v.begin(), v.end());
 	}
@@ -148,18 +150,6 @@ class dstd::vector
 	// Capacity
 	
 	
-	size_t size() const
-	{
-		return this->n_data;
-	}
-	
-	
-	size_t max_size() const
-	{
-		return std::numeric_limits<size_t>::max();
-	}
-	
-	
 	void resize(size_t n, const T& value = T())
 	{
 		if( n < this->size() )
@@ -175,18 +165,6 @@ class dstd::vector
 				this->push_back(value);
 			}
 		}
-	}
-	
-	
-	size_t capacity() const
-	{
-		return this->n_memory;
-	}
-	
-	
-	bool empty() const
-	{
-		return ( this->size() == 0 );
 	}
 	
 	
@@ -539,8 +517,6 @@ class dstd::vector
 	private:
 	
 	allocator_type a;
-	unsigned int n_data;
-	unsigned int n_memory;
 	pointer p;
 };
 
