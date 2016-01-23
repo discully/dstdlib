@@ -69,10 +69,7 @@ class dstd::vector : public dstd::impl::vector_impl<T, Allocator>
 	
 	
 	~vector()
-	{
-		clear();
-		if( p != 0 ) a.deallocate(p, n_memory);
-	}
+	{}
 	
 	
 	//

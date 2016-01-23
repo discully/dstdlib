@@ -35,6 +35,13 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 		class const_iterator;
 		typedef dstd::reverse_iterator< iterator > reverse_iterator;
 		typedef dstd::reverse_iterator< const_iterator > const_reverse_iterator;
+		
+
+		~vector_impl()
+		{
+			clear();
+			if( p != 0 ) a.deallocate(p, n_memory);
+		}
 
 
 		iterator begin()
@@ -139,7 +146,7 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 				return last;
 			}
 
-			unsigned int n_remove = static_cast<unsigned int>(last - first);
+			const size_type n_remove = static_cast<size_type>(last - first);
 
 			iterator it_erase = first;
 			iterator it_shuffle = last;
@@ -178,7 +185,7 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 			if( (size() + n) > capacity() )
 			{
 				// If a reallocation occurs during reserve, position is invalidated
-				unsigned int i_position = static_cast<unsigned int>(position - begin());
+				const size_type i_position = static_cast<size_type>(position - begin());
 				reserve(size() + n);
 				position = begin() + i_position;
 			}
@@ -217,22 +224,18 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 		template <class InputIterator>
 		iterator insert_range(iterator position, InputIterator first, InputIterator last)
 		{
-			if( position > end() || position < begin() )
-			{
-				throw dstd::out_of_range();
-			}
-			else if( last < first )
+			if( position > end() || position < begin() || last < first )
 			{
 				throw dstd::out_of_range();
 			}
 
-			size_type n = static_cast< size_type >(last - first);
+			const size_type n = static_cast<size_type>(last - first);
 
 			// Make sure there is sufficient capacity
 			if( (size() + n) > capacity() )
 			{
 				// If a reallocation occurs during reserve, position is invalidated
-				unsigned int i_position = static_cast<unsigned int>(position - begin());
+				size_type i_position = static_cast<size_type>(position - begin());
 				reserve(size() + n);
 				position = begin() + i_position;
 			}
@@ -270,11 +273,16 @@ class dstd::impl::vector_impl : public dstd::impl::vector_base
 
 		allocator_type a;
 		
+
 		pointer p;
 		
-	private:
 
+	private:
+		
+		/// Not implemented
 		vector_impl(const vector_impl&);
+
+		/// Not implemented
 		vector_impl& operator= (const vector_impl&);
 };
 
